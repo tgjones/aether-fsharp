@@ -56,6 +56,9 @@
     <Compile Include="Films\Film.cs" />
     <Compile Include="Integrators\Integrator.cs" />
     <Compile Include="Integrators\SurfaceIntegrator.cs" />
+    <Compile Include="Materials\Material.cs" />
+    <Compile Include="Primitives\GeometricPrimitive.cs" />
+    <Compile Include="Primitives\Primitive.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sampling\RegularSampler.cs" />
     <Compile Include="Sampling\Sample.cs" />
