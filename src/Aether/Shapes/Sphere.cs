@@ -9,6 +9,16 @@ namespace Aether.Shapes
 		private readonly Point3D _center;
 		private readonly float _radius;
 
+		public Point3D Center
+		{
+			get { return _center; }
+		}
+
+		public float Radius
+		{
+			get { return _radius; }
+		}
+
 		public Sphere(Point3D center, float radius)
 		{
 			_center = center;

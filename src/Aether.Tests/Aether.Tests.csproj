@@ -31,6 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Nexus">
+      <HintPath>..\packages\Nexus.1.0.0.0\lib\NET40\Nexus.dll</HintPath>
+    </Reference>
     <Reference Include="nunit.framework">
       <HintPath>..\packages\NUnit.2.6.0.12054\lib\nunit.framework.dll</HintPath>
     </Reference>
@@ -44,9 +47,18 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Sampling\RegularSamplerTests.cs" />
+    <Compile Include="Shapes\SphereTests.cs" />
+    <Compile Include="Shapes\PlaneTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Aether\Aether.csproj">
+      <Project>{9151F519-305B-4E24-9621-B1B0A0A46F02}</Project>
+      <Name>Aether</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

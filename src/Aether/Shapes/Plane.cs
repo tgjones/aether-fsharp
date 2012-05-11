@@ -9,6 +9,16 @@ namespace Aether.Shapes
 		private readonly Point3D _point;
 		private readonly Normal3D _normal;
 
+		public Point3D Point
+		{
+			get { return _point; }
+		}
+
+		public Normal3D Normal
+		{
+			get { return _normal; }
+		}
+
 		public Plane(Point3D point, Normal3D normal)
 		{
 			_point = point;
