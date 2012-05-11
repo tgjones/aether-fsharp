@@ -54,6 +54,8 @@
     <Compile Include="Cameras\ProjectionCamera.cs" />
     <Compile Include="Films\ColorSurfaceFilm.cs" />
     <Compile Include="Films\Film.cs" />
+    <Compile Include="Integrators\Integrator.cs" />
+    <Compile Include="Integrators\SurfaceIntegrator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Sampling\RegularSampler.cs" />
     <Compile Include="Sampling\Sample.cs" />
