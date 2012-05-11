@@ -1,7 +1,9 @@
-﻿namespace Aether.Materials
+﻿using Aether.Materials.Reflectance;
+
+namespace Aether.Materials
 {
-	public class Material
+	public abstract class Material
 	{
-		 
+		public abstract Bsdf GetBsdf(DifferentialGeometry dg);
 	}
 }
