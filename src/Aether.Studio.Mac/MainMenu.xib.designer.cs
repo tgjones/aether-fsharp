@@ -1,5 +1,5 @@
 
-namespace Aether.Studio.Mac
+namespace TestDocument
 {
     // Should subclass MonoMac.AppKit.NSResponder
     [MonoMac.Foundation.Register("AppDelegate")]

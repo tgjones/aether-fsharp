@@ -9,9 +9,9 @@ namespace Aether.Studio.Shared
     {
         public override Scene CreateScene(Film film)
         {
-            var camera = new OrthographicCamera(film,
-                                                1.0f, 1000.0f, Nexus.Vector3D.Forward, Nexus.Vector3D.Up,
-                                                new Nexus.Point3D(0, 0, 25), film.XRes);
+            var camera = new PerspectiveCamera(film,
+                                                1.0f, 100.0f, Nexus.Vector3D.Forward, Nexus.Vector3D.Up,
+                                                new Nexus.Point3D(0, 0, 15), Nexus.MathUtility.PI_OVER_4);
 
             var sampler = new RegularSampler(new Nexus.IntPoint2D(0, 0), new Nexus.IntPoint2D(film.XRes, film.YRes));
 

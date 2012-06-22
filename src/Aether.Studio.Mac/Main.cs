@@ -4,7 +4,7 @@ using MonoMac.Foundation;
 using MonoMac.AppKit;
 using MonoMac.ObjCRuntime;
 
-namespace Aether.Studio.Mac
+namespace TestDocument
 {
     class MainClass
     {
