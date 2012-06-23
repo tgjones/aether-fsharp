@@ -1,4 +1,5 @@
 ﻿using Nexus;
+using Nexus.Graphics.Transforms;
 
 namespace Aether.Shapes
 {
@@ -6,27 +7,34 @@ namespace Aether.Shapes
 	{
 		private const float Epsilon = 0.0001f;
 
-		private readonly Point3D _center;
 		private readonly float _radius;
-
-		public Point3D Center
-		{
-			get { return _center; }
-		}
 
 		public float Radius
 		{
 			get { return _radius; }
 		}
 
-		public Sphere(Point3D center, float radius)
+		public override AxisAlignedBoundingBox ObjectSpaceBounds
 		{
-			_center = center;
+			get
+			{
+				return new AxisAlignedBoundingBox(
+					new Point3D(-_radius, _radius, _radius),
+					new Point3D(_radius, _radius, _radius));
+			}
+		}
+
+		public Sphere(Transform3D objectToWorld, float radius)
+			: base(objectToWorld)
+		{
 			_radius = radius;
 		}
 
-		public override bool Hit(Ray3D ray, out float tMin, out ShadeRec shadeRec)
+		public override bool TryIntersect(Ray3D ray, out float tHit, out DifferentialGeometry dg)
 		{
+			// Transform ray to object space.
+
+
 			Vector3D temp = ray.Origin - _center;
 			float a = ray.Direction.LengthSquared();
 			float b = 2.0f * Vector3D.Dot(temp, ray.Direction);
@@ -35,8 +43,8 @@ namespace Aether.Shapes
 
 			if (disc < 0)
 			{
-				tMin = 0;
-				shadeRec = null;
+				tHit = 0;
+				dg = null;
 				return false;
 			}
 
@@ -46,11 +54,12 @@ namespace Aether.Shapes
 
 			if (t > Epsilon)
 			{
-				tMin = t;
+				tHit = t;
+				dg = new DifferentialGeometry(ray.Origin + t * ray.Direction, this);
 				shadeRec = new ShadeRec
 				{
 				    Normal = (Normal3D) ((temp + t*ray.Direction)/_radius),
-				    LocalHitPoint = ray.Origin + t*ray.Direction
+				    LocalHitPoint = 
 				};
 				return true;
 			}
@@ -59,7 +68,7 @@ namespace Aether.Shapes
 
 			if (t > Epsilon)
 			{
-				tMin = t;
+				tHit = t;
 				shadeRec = new ShadeRec
 				{
 					Normal = (Normal3D)((temp + t * ray.Direction) / _radius),
@@ -68,8 +77,8 @@ namespace Aether.Shapes
 				return true;
 			}
 
-			tMin = 0;
-			shadeRec = null;
+			tHit = 0;
+			dg = null;
 			return false;
 		}
 	}

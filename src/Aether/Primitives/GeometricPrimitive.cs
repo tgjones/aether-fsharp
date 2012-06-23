@@ -13,17 +13,23 @@ namespace Aether.Primitives
 			_shape = shape;
 		}
 
-		public override bool TryIntersect(Ray3D ray, out float tMin, out ShadeRec shadeRec)
+		public override bool TryIntersect(Ray3D ray, out Intersection intersection)
 		{
-			return _shape.Hit(ray, out tMin, out shadeRec);
+			float tHit;
+			DifferentialGeometry dg;
+			if (!_shape.TryIntersect(ray, out tHit, out dg))
+			{
+				intersection = null;
+				return false;
+			}
+
+			intersection = new Intersection(this, dg);
+			return true;
 		}
 
 		public override bool Intersects(Ray3D ray)
 		{
-			// TODO: Allow shape to optimise this.
-			float tMin;
-			ShadeRec shadeRec;
-			return TryIntersect(ray, out tMin, out shadeRec);
+			return _shape.Intersects(ray);
 		}
 	}
 }

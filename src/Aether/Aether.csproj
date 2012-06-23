@@ -52,11 +52,16 @@
     <Compile Include="Cameras\PerspectiveCamera.cs" />
     <Compile Include="Cameras\OrthographicCamera.cs" />
     <Compile Include="Cameras\ProjectionCamera.cs" />
-    <Compile Include="DifferentialGeometry.cs" />
+    <Compile Include="Primitives\Intersection.cs" />
+    <Compile Include="Shapes\DifferentialGeometry.cs" />
     <Compile Include="Films\ColorSurfaceFilm.cs" />
     <Compile Include="Films\Film.cs" />
     <Compile Include="Integrators\Integrator.cs" />
     <Compile Include="Integrators\SurfaceIntegrator.cs" />
+    <Compile Include="Integrators\WhittedIntegrator.cs" />
+    <Compile Include="Lights\DirectionalLight.cs" />
+    <Compile Include="Lights\Light.cs" />
+    <Compile Include="Lights\PointLight.cs" />
     <Compile Include="Materials\MatteMaterial.cs" />
     <Compile Include="Materials\Reflectance\Bsdf.cs" />
     <Compile Include="Materials\Reflectance\Bxdf.cs" />

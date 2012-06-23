@@ -1,4 +1,5 @@
 ﻿using Aether.Materials.Reflectance;
+using Aether.Shapes;
 using Nexus;
 
 namespace Aether.Materials
