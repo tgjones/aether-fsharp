@@ -1,3 +1,4 @@
+using Aether.Primitives;
 using Aether.Sampling;
 using Nexus;
 
@@ -16,9 +17,9 @@ namespace Aether.Integrators
 		public override ColorF Li(Scene scene, Ray3D ray, Sample sample)
 		{
 			// Search for ray-primitive intersection
-			float tMin;
-			ShadeRec shadeRec;
-			if (!scene.TryIntersect(ray, out tMin, out shadeRec))
+			float tMax = float.MaxValue;
+			Intersection intersection;
+			if (!scene.TryIntersect(ray, float.MinValue, ref tMax, out intersection))
 			{
 				// Handle ray with no intersection
 				// TODO: Iterate through lights to see what they contribute to this ray

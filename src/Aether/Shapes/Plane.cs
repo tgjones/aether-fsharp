@@ -1,4 +1,5 @@
 ﻿using Nexus;
+using Nexus.Graphics.Transforms;
 
 namespace Aether.Shapes
 {
@@ -19,28 +20,39 @@ namespace Aether.Shapes
 			get { return _normal; }
 		}
 
-		public Plane(Point3D point, Normal3D normal)
+		public override AxisAlignedBoundingBox ObjectSpaceBounds
+		{
+			get { throw new System.NotImplementedException(); }
+		}
+
+		public Plane(Transform3D objectToWorld, Point3D point, Normal3D normal)
+			: base(objectToWorld)
 		{
 			_point = point;
 			_normal = normal;
 		}
 
-		public override bool Hit(Ray3D ray, out float tMin, out ShadeRec shadeRec)
+		public override bool TryIntersect(Nexus.Ray3D ray, float tMin, float tMax, out float tHit, out DifferentialGeometry dg)
 		{
-			float t = Vector3D.Dot((_point - ray.Origin), _normal) / Vector3D.Dot(ray.Direction, _normal);
-
-			if (t > Epsilon)
-			{
-				tMin = t;
-				shadeRec = new ShadeRec();
-				shadeRec.Normal = _normal;
-				shadeRec.LocalHitPoint = ray.Origin + (t * ray.Direction);
-				return true;
-			}
-
-			tMin = 0;
-			shadeRec = null;
-			return false;
+			throw new System.NotImplementedException();
 		}
+
+		//public override bool TryIntersect(Ray3D ray, out float tMin, out DifferentialGeometry dg)
+		//{
+		//    float t = Vector3D.Dot((_point - ray.Origin), _normal) / Vector3D.Dot(ray.Direction, _normal);
+
+		//    if (t > Epsilon)
+		//    {
+		//        tMin = t;
+		//        shadeRec = new ShadeRec();
+		//        shadeRec.Normal = _normal;
+		//        shadeRec.LocalHitPoint = ray.Origin + (t * ray.Direction);
+		//        return true;
+		//    }
+
+		//    tMin = 0;
+		//    shadeRec = null;
+		//    return false;
+		//}
 	}
 }

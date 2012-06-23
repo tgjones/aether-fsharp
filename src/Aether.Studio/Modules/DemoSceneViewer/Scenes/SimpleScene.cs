@@ -4,6 +4,7 @@ using Aether.Integrators;
 using Aether.Primitives;
 using Aether.Sampling;
 using Nexus;
+using Nexus.Graphics.Transforms;
 using Sphere = Aether.Shapes.Sphere;
 
 namespace Aether.Studio.Modules.DemoSceneViewer.Scenes
@@ -26,7 +27,7 @@ namespace Aether.Studio.Modules.DemoSceneViewer.Scenes
 				new IntPoint2D(0, 0),
 				new IntPoint2D(film.XRes, film.YRes));
 
-			var shape = new Sphere(new Point3D(0, 0, 0), 5);
+			var shape = new Sphere(new TranslateTransform(), 5);
 			var primitive = new GeometricPrimitive(shape, null);
 
 			return new Scene(camera, surfaceIntegrator, sampler, primitive);

@@ -23,9 +23,9 @@ namespace Aether
 			_primitive = primitive;
 		}
 
-		public bool TryIntersect(Ray3D ray, out float tMin, out ShadeRec shadeRec)
+		public bool TryIntersect(Ray3D ray, float tMin, ref float tMax, out Intersection intersection)
 		{
-			return _primitive.TryIntersect(ray, out tMin, out shadeRec);
+			return _primitive.TryIntersect(ray, tMin, ref tMax, out intersection);
 		}
 
 		public void Render()
