@@ -16,6 +16,10 @@ Bin
 *.suo
 *.cache
 Thumbs.db
+
+# Mac and MonoDevelop stuff
+.DS_Store
+*.userprefs
  
 # Other useful stuff
 *.bak

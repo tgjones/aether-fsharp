@@ -2,7 +2,7 @@ using Nexus.Graphics;
 using Nexus;
 using MonoMac.AppKit;
 
-namespace Aether.Studio.Mac
+namespace Aether.Studio.Mac.Util
 {
     public class NSBitmapImageRepImageBuffer : IImageBuffer
     {
