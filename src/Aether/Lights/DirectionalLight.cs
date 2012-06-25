@@ -15,9 +15,10 @@ namespace Aether.Lights
 			_radiance = radiance;
 		}
 
-		public override ColorF Evaluate(Point3D point, out Vector3D directionToLight)
+		public override ColorF Evaluate(Point3D point, out Vector3D directionToLight, out VisibilityTester visibilityTester)
 		{
 			directionToLight = _direction;
+            visibilityTester = new VisibilityTester(point, directionToLight);
 			return _radiance;
 		}
 	}

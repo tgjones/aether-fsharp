@@ -20,10 +20,10 @@ namespace Aether.Tests.Shapes
 		public void HitReturnsTrueWhenRayHits()
 		{
 			var sphere = new Sphere(new TranslateTransform { OffsetZ = 3 }, 10.0f);
-			var ray = new Ray3D(new Point3D(0, 0, 20), Vector3D.Forward);
+			var ray = new RaySegment3D(new Point3D(0, 0, 20), Vector3D.Forward, 0, float.MaxValue, 0);
 			float tHit;
 			DifferentialGeometry dg;
-			Assert.That(sphere.TryIntersect(ray, float.MinValue, float.MaxValue, out tHit, out dg), Is.True);
+			Assert.That(sphere.TryIntersect(ray, out tHit, out dg), Is.True);
 			Assert.That(tHit, Is.EqualTo(7.0f));
 		}
 
@@ -31,8 +31,8 @@ namespace Aether.Tests.Shapes
 		public void HitReturnsFalseWhenRayMisses()
 		{
 			var sphere = new Sphere(new TranslateTransform { OffsetZ = 3 }, 10.0f);
-			var ray = new Ray3D(new Point3D(20, 0, 20), Vector3D.Forward);
-			Assert.That(sphere.Intersects(ray, float.MinValue, float.MaxValue), Is.False);
+			var ray = new RaySegment3D(new Point3D(20, 0, 20), Vector3D.Forward, 0, float.MaxValue, 0);
+			Assert.That(sphere.Intersects(ray), Is.False);
 		}
 	}
 }

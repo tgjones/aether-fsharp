@@ -15,12 +15,12 @@ namespace Aether.Shapes
 			get { return _objectToWorld.Transform(ObjectSpaceBounds); }
 		}
 
-		protected Transform3D ObjectToWorld
+		public Transform3D ObjectToWorld
 		{
 			get { return _objectToWorld; }
 		}
 
-		protected Transform3D WorldToObject
+		public Transform3D WorldToObject
 		{
 			get { return _worldToObject; }
 		}
@@ -31,13 +31,13 @@ namespace Aether.Shapes
 			_worldToObject = objectToWorld.Inverse;
 		}
 
-		public abstract bool TryIntersect(Ray3D ray, float tMin, float tMax, out float tHit, out DifferentialGeometry dg);
+		public abstract bool TryIntersect(RaySegment3D ray, out float tHit, out DifferentialGeometry dg);
 
-		public virtual bool Intersects(Ray3D ray, float tMin, float tMax)
+		public virtual bool Intersects(RaySegment3D ray)
 		{
 			float tHit;
 			DifferentialGeometry dg;
-			return TryIntersect(ray, tMin, tMax, out tHit, out dg);
+			return TryIntersect(ray, out tHit, out dg);
 		}
 	}
 }

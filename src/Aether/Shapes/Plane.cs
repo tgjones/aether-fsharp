@@ -32,7 +32,7 @@ namespace Aether.Shapes
 			_normal = normal;
 		}
 
-		public override bool TryIntersect(Nexus.Ray3D ray, float tMin, float tMax, out float tHit, out DifferentialGeometry dg)
+		public override bool TryIntersect(RaySegment3D ray, out float tHit, out DifferentialGeometry dg)
 		{
 			throw new System.NotImplementedException();
 		}

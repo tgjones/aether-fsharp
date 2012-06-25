@@ -18,6 +18,8 @@ namespace Aether.Lights
 		/// <param name="point"></param>
 		/// <param name="directionToLight"></param>
 		/// <returns></returns>
-		public abstract ColorF Evaluate(Point3D point, out Vector3D directionToLight);
+		public abstract ColorF Evaluate(Point3D point,
+                                        out Vector3D directionToLight,
+                                        out VisibilityTester visibilityTester);
 	}
 }

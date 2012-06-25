@@ -6,6 +6,9 @@ using Nexus.Graphics.Transforms;
 using Aether.Integrators;
 using Nexus;
 using Aether.Primitives;
+using Aether.Lights;
+using System.Collections.Generic;
+using Aether.Materials;
 
 namespace Aether.Studio.Shared
 {
@@ -24,9 +27,19 @@ namespace Aether.Studio.Shared
                 new IntPoint2D(film.XRes, film.YRes));
 
             var shape = new Aether.Shapes.Sphere(new TranslateTransform(), 5);
-            var primitive = new GeometricPrimitive(shape, null);
+            var material = new MatteMaterial(ColorsF.Red);
+            var primitive = new GeometricPrimitive(shape, material);
 
-            return new Scene(camera, surfaceIntegrator, sampler, primitive);
+            var lights = new List<Light>
+            {
+//                new PointLight(
+//                    new TranslateTransform { OffsetX = 10, OffsetY = 10, OffsetZ = 10},
+//                    new ColorF(0.5f))
+                new DirectionalLight(new RotateTransform3D(), Vector3D.Down, new ColorF(0.5f))
+            };
+
+            return new Scene(camera, surfaceIntegrator, sampler, primitive,
+                             lights);
         }
     }
 }

@@ -14,6 +14,11 @@ namespace Aether.Shapes
 		private readonly Shape _shape;
 		private readonly Normal3D _normal;
 
+        public Point3D Point
+        {
+            get { return _point;}
+        }
+
 		public Normal3D Normal
 		{
 			get { return _normal; }
@@ -40,5 +45,10 @@ namespace Aether.Shapes
 			_shape = shape;
 			_normal = (Normal3D) Vector3D.Normalize(Vector3D.Cross(dpDu, dpDv));
 		}
+
+        public void ComputeDifferentials(RaySegment3D ray)
+        {
+            // TODO
+        }
 	}
 }

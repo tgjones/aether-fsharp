@@ -18,6 +18,6 @@ namespace Aether.Cameras
             _film = film;
         }
 
-        public abstract Ray3D GenerateRay(Sample sample);
+        public abstract RaySegment3D GenerateRay(Sample sample);
     }
 }

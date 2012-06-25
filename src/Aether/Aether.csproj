@@ -75,6 +75,9 @@
     <Compile Include="Shapes\Plane.cs" />
     <Compile Include="Shapes\Shape.cs" />
     <Compile Include="Shapes\Sphere.cs" />
+    <Compile Include="Util\ExtensionMethods.cs" />
+    <Compile Include="Lights\VisibilityTester.cs" />
+    <Compile Include="RaySegment3D.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -87,4 +90,7 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <ItemGroup>
+    <Folder Include="Util\" />
+  </ItemGroup>
 </Project>

@@ -17,14 +17,15 @@ namespace Aether.Cameras
 			_view = nexusCamera.GetViewMatrix();
 		}
 
-		public override Ray3D GenerateRay(Sample sample)
+		public override RaySegment3D GenerateRay(Sample sample)
 		{
 			var viewport = new Viewport(0, 0, Film.XRes, Film.YRes);
 
 			Point3D near = Unproject(viewport, sample.ImageX, sample.ImageY, viewport.MinDepth);
 			Point3D far = Unproject(viewport, sample.ImageX, sample.ImageY, viewport.MaxDepth);
 
-			return new Ray3D(near, Vector3D.Normalize(far - near));
+			return new RaySegment3D(near, Vector3D.Normalize(far - near),
+                0, (far - near).Length(), 0);
 		}
 
 		private Point3D Unproject(Viewport viewport, int x, int y, float z)

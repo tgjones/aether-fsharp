@@ -13,6 +13,17 @@ namespace Aether.Materials.Reflectance
 		private readonly Normal3D _nn;
 		private readonly Vector3D _sn, _tn;
 
+        public DifferentialGeometry DifferentialGeometry
+        {
+            get { return _dg; }
+        }
+
+        // TODO: Allow shape to use a shading geometry.
+        public DifferentialGeometry ShadingGeometry
+        {
+            get { return _dg; }
+        }
+
 		public Bsdf(DifferentialGeometry dg, Normal3D geometricNormal)
 		{
 			_dg = dg;
@@ -29,7 +40,8 @@ namespace Aether.Materials.Reflectance
 			_bxdfs.Add(bxdf);
 		}
 
-		public ColorF Evaluate(Vector3D outgoingWorld, Vector3D incomingWorld, BxdfType flags)
+		public ColorF Evaluate(Vector3D outgoingWorld, Vector3D incomingWorld,
+                               BxdfType flags = BxdfType.All)
 		{
 			Vector3D outgoing = WorldToLocal(outgoingWorld);
 			Vector3D incoming = WorldToLocal(incomingWorld);

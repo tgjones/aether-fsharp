@@ -1,4 +1,5 @@
-﻿using Nexus;
+﻿using Aether.Util;
+using Nexus;
 using Nexus.Graphics.Transforms;
 
 namespace Aether.Shapes
@@ -33,7 +34,7 @@ namespace Aether.Shapes
 			_radius = radius;
 		}
 
-		public override bool TryIntersect(Ray3D ray, float tMin, float tMax, out float tHit, out DifferentialGeometry dg)
+		public override bool TryIntersect(RaySegment3D ray, out float tHit, out DifferentialGeometry dg)
 		{
 			// Initialize output.
 			tHit = float.MinValue;
@@ -54,13 +55,13 @@ namespace Aether.Shapes
 				return false;
 
 			// Compute intersection distance along ray.
-			if (t0 > tMax || t1 < tMin)
+			if (t0 > ray.MaxT || t1 < ray.MinT)
 				return false;
 			float tHitTemp = t0;
-			if (t0 < tMin) // Is first intersection before the range we're interested in?
+			if (t0 < ray.MinT) // Is first intersection before the range we're interested in?
 			{
 				tHitTemp = t1;
-				if (tHitTemp > tMax) // Is second intersection after the range we're interested in?
+				if (tHitTemp > ray.MaxT) // Is second intersection after the range we're interested in?
 					return false;
 			}
 

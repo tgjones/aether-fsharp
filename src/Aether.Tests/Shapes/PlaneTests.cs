@@ -23,10 +23,10 @@ namespace Aether.Tests.Shapes
 		public void HitReturnsTrueWhenRayHits()
 		{
 			var plane = new Plane(new TranslateTransform(), new Point3D(0, 0, 0), new Normal3D(0, 1, 0));
-			var ray = new Ray3D(new Point3D(0, 4, 0), Vector3D.Down);
+			var ray = new RaySegment3D(new Point3D(0, 4, 0), Vector3D.Down, 0, float.MaxValue, 0);
 			float tHit;
 			DifferentialGeometry dg;
-			Assert.That(plane.TryIntersect(ray, float.MinValue, float.MaxValue, out tHit, out dg), Is.True);
+			Assert.That(plane.TryIntersect(ray, out tHit, out dg), Is.True);
 			Assert.That(tHit, Is.EqualTo(4.0f));
 		}
 
@@ -34,10 +34,10 @@ namespace Aether.Tests.Shapes
 		public void HitReturnsFalseWhenRayMisses()
 		{
 			var plane = new Plane(new TranslateTransform(), new Point3D(0, 0, 0), new Normal3D(0, 1, 0));
-			var ray = new Ray3D(new Point3D(0, 1, 0), Vector3D.Forward);
+			var ray = new RaySegment3D(new Point3D(0, 1, 0), Vector3D.Forward, 0, float.MaxValue, 0);
 			float tHit;
 			DifferentialGeometry dg;
-			Assert.That(plane.TryIntersect(ray, float.MinValue, float.MaxValue, out tHit, out dg), Is.False);
+			Assert.That(plane.TryIntersect(ray, out tHit, out dg), Is.False);
 		}
 	}
 }

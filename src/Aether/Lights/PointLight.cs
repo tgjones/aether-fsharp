@@ -15,10 +15,11 @@ namespace Aether.Lights
 			_intensity = intensity;
 		}
 
-		public override ColorF Evaluate(Point3D point, out Vector3D directionToLight)
+		public override ColorF Evaluate(Point3D point, out Vector3D directionToLight, out VisibilityTester visibilityTester)
 		{
 			Vector3D vectorToLight = _position - point;
 			directionToLight = Vector3D.Normalize(vectorToLight);
+            visibilityTester = new VisibilityTester(point, _position);
 			return _intensity / vectorToLight.LengthSquared();
 		}
 	}
