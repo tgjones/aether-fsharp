@@ -50,7 +50,10 @@
       <HintPath>..\..\lib\Gemini\Gemini.dll</HintPath>
     </Reference>
     <Reference Include="Nexus">
-      <HintPath>..\packages\Nexus.1.0.0.0\lib\NET40\Nexus.dll</HintPath>
+      <HintPath>..\packages\Nexus.2.0.0\lib\net40\Nexus.dll</HintPath>
+    </Reference>
+    <Reference Include="Nexus.Wpf">
+      <HintPath>..\packages\Nexus.Wpf.2.0.0\lib\net40\Nexus.Wpf.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />

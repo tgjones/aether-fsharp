@@ -1,6 +1,7 @@
 ﻿using Aether.Util;
 using Nexus;
 using Nexus.Graphics.Transforms;
+using Nexus.Objects3D;
 
 namespace Aether.Shapes
 {
@@ -18,11 +19,11 @@ namespace Aether.Shapes
 			get { return _radius; }
 		}
 
-		public override AxisAlignedBoundingBox ObjectSpaceBounds
+		public override AxisAlignedBox3D ObjectSpaceBounds
 		{
 			get
 			{
-				return new AxisAlignedBoundingBox(
+				return new AxisAlignedBox3D(
 					new Point3D(-_radius, _radius, _radius),
 					new Point3D(_radius, _radius, _radius));
 			}
@@ -51,7 +52,7 @@ namespace Aether.Shapes
 
 			// Solve quadratic equation
 			float t0, t1;
-			if (!Quadratic.Solve(a, b, c, out t0, out t1))
+			if (!MathUtility.Quadratic(a, b, c, out t0, out t1))
 				return false;
 
 			// Compute intersection distance along ray.

@@ -4,6 +4,7 @@ using Aether.Util;
 using Nexus;
 using Aether.Materials.Reflectance;
 using Aether.Lights;
+using Nexus.Graphics.Colors;
 
 namespace Aether.Integrators
 {
@@ -19,7 +20,7 @@ namespace Aether.Integrators
 
 		public override ColorF Li(Scene scene, RaySegment3D ray, Sample sample)
 		{
-            ColorF result;
+            ColorF result = new ColorF();
 
 			// Search for ray-primitive intersection
 			Intersection intersection;

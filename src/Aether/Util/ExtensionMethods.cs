@@ -1,5 +1,6 @@
-using Nexus;
+using Nexus.Graphics.Colors;
 using Nexus.Graphics.Transforms;
+using Nexus.Objects3D;
 
 namespace Aether.Util
 {

@@ -1,5 +1,5 @@
 ﻿using Aether.Sampling;
-using Nexus;
+using Nexus.Graphics.Colors;
 
 namespace Aether.Films
 {

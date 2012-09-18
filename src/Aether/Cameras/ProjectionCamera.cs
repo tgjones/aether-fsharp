@@ -19,7 +19,7 @@ namespace Aether.Cameras
 
 		public override RaySegment3D GenerateRay(Sample sample)
 		{
-			var viewport = new Viewport(0, 0, Film.XRes, Film.YRes);
+			var viewport = new Viewport3D(0, 0, Film.XRes, Film.YRes);
 
 			Point3D near = Unproject(viewport, sample.ImageX, sample.ImageY, viewport.MinDepth);
 			Point3D far = Unproject(viewport, sample.ImageX, sample.ImageY, viewport.MaxDepth);
@@ -28,7 +28,7 @@ namespace Aether.Cameras
                 0, (far - near).Length(), 0);
 		}
 
-		private Point3D Unproject(Viewport viewport, int x, int y, float z)
+		private Point3D Unproject(Viewport3D viewport, int x, int y, float z)
 		{
 			return viewport.Unproject(new Point3D(x, y, z), _projection, _view, Matrix3D.Identity);
 		}

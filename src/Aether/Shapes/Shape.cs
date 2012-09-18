@@ -1,5 +1,5 @@
-﻿using Nexus;
-using Nexus.Graphics.Transforms;
+﻿using Nexus.Graphics.Transforms;
+using Nexus.Objects3D;
 
 namespace Aether.Shapes
 {
@@ -8,9 +8,9 @@ namespace Aether.Shapes
 		private readonly Transform3D _objectToWorld;
 		private readonly Transform3D _worldToObject;
 
-		public abstract AxisAlignedBoundingBox ObjectSpaceBounds { get; }
+		public abstract AxisAlignedBox3D ObjectSpaceBounds { get; }
 
-		public virtual AxisAlignedBoundingBox WorldSpaceBounds
+		public virtual AxisAlignedBox3D WorldSpaceBounds
 		{
 			get { return _objectToWorld.Transform(ObjectSpaceBounds); }
 		}

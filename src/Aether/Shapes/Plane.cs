@@ -1,5 +1,6 @@
 ﻿using Nexus;
 using Nexus.Graphics.Transforms;
+using Nexus.Objects3D;
 
 namespace Aether.Shapes
 {
@@ -20,7 +21,7 @@ namespace Aether.Shapes
 			get { return _normal; }
 		}
 
-		public override AxisAlignedBoundingBox ObjectSpaceBounds
+		public override AxisAlignedBox3D ObjectSpaceBounds
 		{
 			get { throw new System.NotImplementedException(); }
 		}

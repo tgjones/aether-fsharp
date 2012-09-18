@@ -1,6 +1,6 @@
 ﻿using Aether.Materials.Reflectance;
 using Aether.Shapes;
-using Nexus;
+using Nexus.Graphics.Colors;
 
 namespace Aether.Materials
 {

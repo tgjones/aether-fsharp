@@ -2,10 +2,9 @@
 using Aether.Integrators;
 using Aether.Primitives;
 using Aether.Sampling;
-using Aether.Shapes;
-using Nexus;
 using System.Collections.Generic;
 using Aether.Lights;
+using Nexus.Graphics.Colors;
 
 namespace Aether
 {

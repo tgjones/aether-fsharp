@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Aether.Shapes;
 using Nexus;
+using Nexus.Graphics.Colors;
 
 namespace Aether.Materials.Reflectance
 {

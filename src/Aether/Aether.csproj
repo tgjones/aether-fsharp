@@ -30,6 +30,12 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Nexus, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Nexus.2.0.0\lib\net40\Nexus.dll</HintPath>
+    </Reference>
+    <Reference Include="Nexus.Wpf">
+      <HintPath>..\packages\Nexus.Wpf.2.0.0\lib\net40\Nexus.Wpf.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -38,9 +44,6 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
-    <Reference Include="Nexus">
-      <HintPath>..\packages\Nexus.1.0.0.0\lib\NET40\Nexus.dll</HintPath>
-    </Reference>
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
@@ -71,7 +74,6 @@
     <Compile Include="Sampling\Sample.cs" />
     <Compile Include="Sampling\Sampler.cs" />
     <Compile Include="Scene.cs" />
-    <Compile Include="ShadeRec.cs" />
     <Compile Include="Shapes\Plane.cs" />
     <Compile Include="Shapes\Shape.cs" />
     <Compile Include="Shapes\Sphere.cs" />
@@ -90,7 +92,5 @@
   <Target Name="AfterBuild">
   </Target>
   -->
-  <ItemGroup>
-    <Folder Include="Util\" />
-  </ItemGroup>
+  <ItemGroup />
 </Project>

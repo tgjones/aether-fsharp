@@ -1,9 +1,13 @@
-﻿using Aether.Cameras;
+﻿using System.Collections.Generic;
+using Aether.Cameras;
 using Aether.Films;
 using Aether.Integrators;
+using Aether.Lights;
+using Aether.Materials;
 using Aether.Primitives;
 using Aether.Sampling;
 using Nexus;
+using Nexus.Graphics.Colors;
 using Nexus.Graphics.Transforms;
 using Sphere = Aether.Shapes.Sphere;
 
@@ -28,9 +32,12 @@ namespace Aether.Studio.Modules.DemoSceneViewer.Scenes
 				new IntPoint2D(film.XRes, film.YRes));
 
 			var shape = new Sphere(new TranslateTransform(), 5);
-			var primitive = new GeometricPrimitive(shape, null);
+			var primitive = new GeometricPrimitive(shape, new MatteMaterial(ColorsF.Green));
 
-			return new Scene(camera, surfaceIntegrator, sampler, primitive);
+			var lights = new List<Light>();
+			lights.Add(new DirectionalLight(new TranslateTransform(), Vector3D.Down, ColorsF.White));
+
+			return new Scene(camera, surfaceIntegrator, sampler, primitive, lights);
 		}
 	}
 }
