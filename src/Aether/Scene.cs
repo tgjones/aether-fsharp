@@ -43,8 +43,7 @@ namespace Aether
 
 		public void Render()
 		{
-			Sample sample;
-			while (_sampler.GetNextSample(out sample))
+			foreach (var sample in _sampler.GetSamples())
 			{
 				RaySegment3D ray = _camera.GenerateRay(sample);
 

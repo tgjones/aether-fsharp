@@ -1,4 +1,5 @@
-﻿using Nexus;
+﻿using System.Collections.Generic;
+using Nexus;
 
 namespace Aether.Sampling
 {
@@ -13,6 +14,6 @@ namespace Aether.Sampling
 			_end = end;
 		}
 
-		public abstract bool GetNextSample(out Sample sample);
+		public abstract IEnumerable<Sample> GetSamples();
 	}
 }

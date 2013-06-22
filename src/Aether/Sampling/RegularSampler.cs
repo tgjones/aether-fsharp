@@ -1,4 +1,5 @@
-﻿using Nexus;
+﻿using System.Collections.Generic;
+using Nexus;
 
 namespace Aether.Sampling
 {
@@ -6,34 +7,31 @@ namespace Aether.Sampling
 	{
 		private readonly int _xStart, _yStart;
 		private readonly int _xEnd, _yEnd;
-		private int _xPos, _yPos;
 
 		public RegularSampler(IntPoint2D start, IntPoint2D end)
 			: base(start, end)
 		{
-			_xStart = _xPos = start.X;
-			_yStart = _yPos = start.Y;
+			_xStart = start.X;
+			_yStart = start.Y;
 			_xEnd = end.X;
 			_yEnd = end.Y;
 		}
 
-		public override bool GetNextSample(out Sample sample)
-		{
-			if (_yPos == _yEnd)
-			{
-				sample = null;
-				return false;
-			}
+	    public override IEnumerable<Sample> GetSamples()
+	    {
+            var xPos = _xStart;
+	        var yPos = _yStart;
 
-			sample = new Sample { ImageX = _xPos, ImageY = _yPos };
+	        while (yPos < _yEnd)
+	        {
+	            yield return new Sample { ImageX = xPos, ImageY = yPos };
 
-			if (++_xPos == _xEnd)
-			{
-				_xPos = _xStart;
-				++_yPos;
-			}
-
-			return true;
-		}
+	            if (++xPos == _xEnd)
+	            {
+	                xPos = _xStart;
+	                ++yPos;
+	            }
+	        }
+	    }
 	}
 }
