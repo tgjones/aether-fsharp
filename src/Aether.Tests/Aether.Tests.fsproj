@@ -52,6 +52,7 @@
     <None Include="packages.config" />
     <Compile Include="SamplingTests.fs" />
     <Compile Include="ShapesTests.fs" />
+    <Compile Include="ParsingTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
