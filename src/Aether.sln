@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.20827.3
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aether.Studio", "Aether.Studio\Aether.Studio.csproj", "{1A1C6321-9766-4097-ABEE-036B7EE9D792}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Aether", "Aether\Aether.fsproj", "{5F5C1D47-BF99-4371-A2AD-0D35F8C21A1C}"
