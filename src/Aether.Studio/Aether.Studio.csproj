@@ -49,11 +49,13 @@
     <Reference Include="Gemini">
       <HintPath>..\..\lib\Gemini\Gemini.dll</HintPath>
     </Reference>
-    <Reference Include="Nexus">
-      <HintPath>..\packages\Nexus.2.0.0\lib\net40\Nexus.dll</HintPath>
+    <Reference Include="Nexus, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Nexus.2.1.0\lib\net40\Nexus.dll</HintPath>
     </Reference>
-    <Reference Include="Nexus.Wpf">
-      <HintPath>..\packages\Nexus.Wpf.2.0.0\lib\net40\Nexus.Wpf.dll</HintPath>
+    <Reference Include="Nexus.Wpf, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Nexus.Wpf.2.1.0\lib\net40\Nexus.Wpf.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
@@ -116,16 +118,16 @@
     <AppDesigner Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Aether\Aether.csproj">
-      <Project>{9151F519-305B-4E24-9621-B1B0A0A46F02}</Project>
-      <Name>Aether</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <Page Include="Modules\DemoSceneViewer\Views\DemoSceneViewerView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Aether\Aether.fsproj">
+      <Project>{5f5c1d47-bf99-4371-a2ad-0d35f8c21a1c}</Project>
+      <Name>Aether</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
