@@ -30,6 +30,9 @@ type Shape(objectToWorld : Transform3D) =
     member this.ObjectToWorld = objectToWorld
     member this.WorldToObject = worldToObject
 
+    abstract CanIntersect : unit -> bool
+    default this.CanIntersect() = true
+
     abstract TryIntersect : RaySegment3D -> (bool * single * option<DifferentialGeometry>)
 
     abstract Intersects : RaySegment3D -> bool
@@ -158,3 +161,19 @@ type Sphere(objectToWorld, radius) =
                         intersect tHitTemp
                 else
                     intersect tHitTemp
+
+
+//type TriangleMesh(objectToWorld, numTriangles, numVertices, vertexIndices,
+//                  points : Point3D list, normals, s, textureCoordinates) =
+//    inherit Shape(objectToWorld)
+//
+//    // Transform mesh vertices to world space.
+//    let worldSpacePoints = points |> List.map objectToWorld.Transform
+//
+//    override this.CanIntersect() = false
+//    override this.ObjectSpaceBounds = AxisAlignedBox3D(points)
+//    override this.WorldSpaceBounds = AxisAlignedBox3D(worldSpacePoints)
+
+
+//type Triangle(objectToWorld, mesh) =
+//    inherit Shape(objectToWorld)
