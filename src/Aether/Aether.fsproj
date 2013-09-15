@@ -53,6 +53,7 @@
     <Compile Include="Math.fs" />
     <Compile Include="Lights.fs" />
     <Compile Include="Shapes.fs" />
+    <Compile Include="Reflection.fs" />
     <Compile Include="Materials.fs" />
     <Compile Include="Primitives.fs" />
     <Compile Include="Filters.fs" />

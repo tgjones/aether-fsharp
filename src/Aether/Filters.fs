@@ -4,21 +4,32 @@ open System
 open Nexus
 
 
+/// Filters are used by the <see cref="Film" /> class to filter output before 
+/// writing it to disk. Filters have a width, which may be different in the x
+/// and y directions. The overall extent of the filter is twice the 
+/// corresponding width.
 [<AbstractClass>]
 type Filter(xWidth, yWidth) =
 
+    /// Returns the weight of the sample for the given coordinates. The 
+    /// coordinates specify the sample point relative to the filter's
+    /// centre.
     abstract Evaluate : single -> single -> single
 
     static member CalculateInverses xWidth yWidth =
         (1.0f / xWidth, 1.0f / yWidth)
 
 
+/// The box filter weights all samples equally. This is not a good filter.
 type BoxFilter(xWidth, yWidth) =
     inherit Filter(xWidth, yWidth)
 
     override this.Evaluate x y = 1.0f
 
 
+/// The gaussian filter is better than the box and triangle filters. It 
+/// evaluates to 0 at the extents. Between those limits, it falls off using
+/// a Gaussian curve. The Gaussian filter causes slight blurring.
 type GaussianFilter(xWidth, yWidth, alpha) =
     inherit Filter(xWidth, yWidth)
 
@@ -32,6 +43,10 @@ type GaussianFilter(xWidth, yWidth, alpha) =
         (gaussian x expX) * (gaussian y expY)
 
 
+/// The Mitchell filter was created by Mitchell and Netravali (1988). It 
+/// provides crisper results than the Gaussian filter, while still accurately
+/// representing the function being sampled. It has two parameters called B and C;
+/// these should lie along the line B + 2C = 1.
 type MitchellFilter(xWidth, yWidth, b, c) =
     inherit Filter(xWidth, yWidth)
 
@@ -48,9 +63,12 @@ type MitchellFilter(xWidth, yWidth, b, c) =
              (6.0f - 2.0f * b)) * (1.0f / 6.0f)
 
     override this.Evaluate x y =
-        (mitchell1D x * inverseXWidth) * (mitchell1D y * inverseYWidth)
+        (mitchell1D (x * inverseXWidth)) * (mitchell1D (y * inverseYWidth))
 
 
+/// The Lanczos filter is based on the sinc function. The tau parameter controls
+/// how many sinc function cycles are evaluated before it is clamped to a value
+/// of 0.
 type LanczosSincFilter(xWidth, yWidth, tau) =
     inherit Filter(xWidth, yWidth)
 
@@ -58,7 +76,7 @@ type LanczosSincFilter(xWidth, yWidth, tau) =
 
     let sinc1D (x : single) =
         let x' = Math.Abs(x)
-        if x < 1.0f ** -5.0f then 1.0f
+        if x < 10.0f ** -5.0f then 1.0f
         elif x > 1.0f then 0.0f
         else
             let x'' = x' * MathUtility.PI
@@ -70,6 +88,9 @@ type LanczosSincFilter(xWidth, yWidth, tau) =
         sinc1D(x * inverseXWidth) * sinc1D(y * inverseYWidth)
 
 
+/// The triangle filter is slightly better than the box filter. Samples at the
+/// centre point have a weight of 1, falling off linearly to the square extent
+/// of the filter.
 type TriangleFilter(xWidth, yWidth) =
     inherit Filter(xWidth, yWidth)
 

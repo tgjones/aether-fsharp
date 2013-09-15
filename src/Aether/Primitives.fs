@@ -3,6 +3,7 @@
 open System.Collections.Generic
 open Nexus.Graphics.Transforms
 open Aether.Math
+open Aether.Reflection
 open Aether.Materials
 open Aether.Shapes
 
