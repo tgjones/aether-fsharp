@@ -60,3 +60,16 @@ type PerspectiveCamera(film, nearPlaneDistance, farPlaneDistance,
             UpDirection = upDirection,
             Position = position,
             FieldOfView = fieldOfView))
+
+
+type EnvironmentCamera(film) =
+    inherit Camera(film)
+
+    override this.GenerateRay sample =
+        // Compute environment camera ray direction
+        let theta = MathUtility.PI * single(sample.ImageY) / single(film.YRes)
+        let phi = 2.0f * MathUtility.PI * single(sample.ImageX) / single(film.XRes)
+        let dir = Vector3D(MathUtility.Sin(theta) * MathUtility.Cos(phi),
+                           MathUtility.Cos(theta),
+                           MathUtility.Sin(theta) * MathUtility.Sin(phi))
+        RaySegment3D(Point3D.Zero, dir)
