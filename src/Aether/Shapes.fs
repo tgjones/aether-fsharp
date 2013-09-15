@@ -6,7 +6,7 @@ open Nexus.Objects3D
 open Aether.Math
 
 
-type DifferentialGeometry(point, dpDu : Vector3D, dpDv : Vector3D, dnDu, dnDv, u, v, shape) =
+type DifferentialGeometry(point, dpDu : Vector3D, dpDv : Vector3D, dnDu, dnDv, u, v, shape : Shape) =
     let normal = Normal3D.op_Explicit(Vector3D.Normalize(Vector3D.Cross(dpDu, dpDv)))
 
     member this.Point = point
@@ -17,8 +17,7 @@ type DifferentialGeometry(point, dpDu : Vector3D, dpDv : Vector3D, dnDu, dnDv, u
         () // TODO
 
 
-[<AbstractClass>]
-type Shape(objectToWorld : Transform3D) =
+and [<AbstractClass>] Shape(objectToWorld : Transform3D) =
     let worldToObject = objectToWorld.Inverse
 
     abstract ObjectSpaceBounds: AxisAlignedBox3D
@@ -30,8 +29,9 @@ type Shape(objectToWorld : Transform3D) =
     member this.ObjectToWorld = objectToWorld
     member this.WorldToObject = worldToObject
 
-    abstract CanIntersect : unit -> bool
-    default this.CanIntersect() = true
+
+and [<AbstractClass>] IntersectableShape(objectToWorld) =
+    inherit Shape(objectToWorld)
 
     abstract TryIntersect : RaySegment3D -> (bool * single * option<DifferentialGeometry>)
 
@@ -41,8 +41,14 @@ type Shape(objectToWorld : Transform3D) =
         result
 
 
-type Plane(objectToWorld, point, normal) =
+and [<AbstractClass>] RefinableShape(objectToWorld) =
     inherit Shape(objectToWorld)
+
+    abstract Refine : unit -> Shape list
+
+
+type Plane(objectToWorld, point, normal) =
+    inherit IntersectableShape(objectToWorld)
 
     member this.Point = point
     member this.Normal = normal
@@ -55,7 +61,7 @@ type Plane(objectToWorld, point, normal) =
 
 
 type Sphere(objectToWorld, radius) =
-    inherit Shape(objectToWorld)
+    inherit IntersectableShape(objectToWorld)
 
     let phiMax = MathUtility.TWO_PI
     let thetaMin = MathUtility.PI
@@ -163,17 +169,112 @@ type Sphere(objectToWorld, radius) =
                     intersect tHitTemp
 
 
-//type TriangleMesh(objectToWorld, numTriangles, numVertices, vertexIndices,
-//                  points : Point3D list, normals, s, textureCoordinates) =
-//    inherit Shape(objectToWorld)
-//
-//    // Transform mesh vertices to world space.
-//    let worldSpacePoints = points |> List.map objectToWorld.Transform
-//
-//    override this.CanIntersect() = false
-//    override this.ObjectSpaceBounds = AxisAlignedBox3D(points)
-//    override this.WorldSpaceBounds = AxisAlignedBox3D(worldSpacePoints)
+type TriangleMesh(objectToWorld, numTriangles, numVertices, 
+                  vertexIndices : int[],
+                  points : Point3D list,
+                  normals : Normal3D list,
+                  s,
+                  textureCoordinates : Point2D list option) =
+    inherit RefinableShape(objectToWorld)
+
+    // Transform mesh vertices to world space.
+    let worldSpacePoints = points |> List.map objectToWorld.Transform
+
+    member this.VertexIndices = vertexIndices
+    member this.Points = points
+    member this.TextureCoordinates = textureCoordinates
+
+    override this.ObjectSpaceBounds = AxisAlignedBox3D(points)
+    override this.WorldSpaceBounds = AxisAlignedBox3D(worldSpacePoints)
+
+    override this.Refine () =
+        [ for n in [0 .. numTriangles-1] ->
+              Triangle(objectToWorld, this, n) :> Shape ]
 
 
-//type Triangle(objectToWorld, mesh) =
-//    inherit Shape(objectToWorld)
+and Triangle(objectToWorld, mesh : TriangleMesh, n) =
+    inherit IntersectableShape(objectToWorld)
+
+    let vertexIndices = mesh.VertexIndices.[n..n+2]
+
+    // Get triangle vertices in p1, p2, p3
+    let p1 = mesh.Points.[vertexIndices.[0]]
+    let p2 = mesh.Points.[vertexIndices.[1]]
+    let p3 = mesh.Points.[vertexIndices.[2]]
+
+    // Get texture coordinates
+    let uvs =
+        match mesh.TextureCoordinates with
+        | Some(uvs) ->
+            [ uvs.[vertexIndices.[0]]
+              uvs.[vertexIndices.[1]]
+              uvs.[vertexIndices.[2]] ]
+        | None ->
+            [ Point2D(0.0f, 0.0f)
+              Point2D(1.0f, 0.0f)
+              Point2D(1.0f, 1.0f) ]
+
+    override this.ObjectSpaceBounds =
+        AxisAlignedBox3D([ this.WorldToObject.Transform(p1)
+                           this.WorldToObject.Transform(p2)
+                           this.WorldToObject.Transform(p3) ])
+
+    override this.WorldSpaceBounds =
+        AxisAlignedBox3D([ p1; p2; p3 ])
+
+    override this.TryIntersect ray =
+        // TODO: This is duplicated in other shapes.
+        let defaultOutput = (false, System.Single.MinValue, None)
+
+        let e1 = p2 - p1
+        let e2 = p3 - p1
+        let s1 = Vector3D.Cross(ray.Direction, e1)
+        let divisor = Vector3D.Dot(s1, e1)
+
+        if divisor = 0.0f then defaultOutput else
+            let invDivisor = 1.0f / divisor
+
+            // Compute first barycentric coordinate
+            let d = ray.Origin - p1
+            let b1 = Vector3D.Dot(d, s1) * invDivisor
+            if b1 < 0.0f || b1 > 1.0f then defaultOutput else
+                
+                // Compute second barycentric coordinate
+                let s2 = Vector3D.Cross(d, e1)
+                let b2 = Vector3D.Dot(ray.Direction, s2) * invDivisor
+                if b2 < 0.0f || b1 + b2 > 1.0f then defaultOutput else
+
+                    // Compute t to intersection point
+                    let t = Vector3D.Dot(e2, s2) * invDivisor
+                    if t < ray.MinT || t > ray.MaxT then defaultOutput else
+                        
+                        // Compute deltas for triangle partial derivatives
+                        let du1 = uvs.[0].X - uvs.[2].X
+                        let du2 = uvs.[1].X - uvs.[2].X
+                        let dv1 = uvs.[0].Y - uvs.[2].Y
+                        let dv2 = uvs.[1].Y - uvs.[2].Y
+                        let dp1 = p1 - p3
+                        let dp2 = p2 - p3
+                        let determinant = du1 * dv2 - dv1 * du2
+                        let dpdu, dpdv =
+                            if determinant = 0.0f then
+                                // Handle zero determinant for triangle partial derivative matrix
+                                failwith "Not done yet"
+                            else
+                                let invdet = 1.0f / determinant
+                                ( ( dv2 * dp1 - dv1 * dp2) * invdet,
+                                  (-du2 * dp1 + du1 * dp2) * invdet )
+
+                        // Interpolate $(u,v)$ triangle parametric coordinates
+                        let b0 = 1.0f - b1 - b2
+                        let tu = b0 * uvs.[0].X + b1 * uvs.[1].X + b2 * uvs.[2].X
+                        let tv = b0 * uvs.[0].Y + b1 * uvs.[1].Y + b2 * uvs.[2].Y
+
+                        // Test intersection against alpha texture, if present
+                        // TODO
+
+                        // Fill in DifferentialGeometry from triangle hit
+                        let dg = DifferentialGeometry(ray.Evaluate(t), dpdu, dpdv,
+                                                      Vector3D.Zero, Vector3D.Zero,
+                                                      tu, tv, this)
+                        (true, t, Some(dg))
