@@ -50,8 +50,9 @@
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <ItemGroup>
     <None Include="packages.config" />
-    <Compile Include="SamplingTests.fs" />
     <Compile Include="ShapesTests.fs" />
+    <Compile Include="FiltersTests.fs" />
+    <Compile Include="SamplingTests.fs" />
     <Compile Include="ParsingTests.fs" />
   </ItemGroup>
   <ItemGroup>

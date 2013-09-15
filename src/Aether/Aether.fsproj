@@ -55,6 +55,7 @@
     <Compile Include="Shapes.fs" />
     <Compile Include="Materials.fs" />
     <Compile Include="Primitives.fs" />
+    <Compile Include="Filters.fs" />
     <Compile Include="Sampling.fs" />
     <Compile Include="Integrators.fs" />
     <Compile Include="Films.fs" />
