@@ -24,6 +24,49 @@ type CoefficientSpectrum(numSamples : int, ?initialValue0 : single) =
     let initialValue = defaultArg initialValue0 0.0f
     let coefficients = Array.create numSamples initialValue
 
+    member this.NumSamples = numSamples
+    member this.Coefficients = coefficients
+
+    static member private doOperation(left : CoefficientSpectrum, right : CoefficientSpectrum, op) =
+        let leftc, rightc = left.Coefficients, right.Coefficients
+        CoefficientSpectrum.doOperation(left.NumSamples, (fun n -> (op leftc.[n] rightc.[n])))
+
+    static member private doOperation(left : CoefficientSpectrum, right : single, op) =
+        let leftc = left.Coefficients
+        CoefficientSpectrum.doOperation(left.NumSamples, (fun n -> (op leftc.[n] right)))
+
+    static member private doOperation(value : CoefficientSpectrum, op) =
+        let valuec = value.Coefficients
+        CoefficientSpectrum.doOperation(value.NumSamples, (fun n -> (op valuec.[n])))
+
+    static member private doOperation(numSamples, op) =
+        let result = CoefficientSpectrum(numSamples)
+        let resultc = result.Coefficients
+        for n in [0 .. numSamples-1] do
+            resultc.[n] <- (op n)
+        result
+
+    static member (+) (left : CoefficientSpectrum, right : CoefficientSpectrum) =
+        CoefficientSpectrum.doOperation(left, right, (+))
+
+    static member (-) (left : CoefficientSpectrum, right : CoefficientSpectrum) =
+        CoefficientSpectrum.doOperation(left, right, (-))
+
+    static member (/) (left : CoefficientSpectrum, right : CoefficientSpectrum) =
+        CoefficientSpectrum.doOperation(left, right, (/))
+
+    static member (/) (left : CoefficientSpectrum, right : single) =
+        CoefficientSpectrum.doOperation(left, right, (/))
+
+    static member (*) (left : CoefficientSpectrum, right : CoefficientSpectrum) =
+        CoefficientSpectrum.doOperation(left, right, (*))
+
+    static member (*) (left : CoefficientSpectrum, right : single) =
+        CoefficientSpectrum.doOperation(left, right, (*))
+
+    static member Sqrt spectrum = CoefficientSpectrum.doOperation(spectrum, sqrt)
+    static member Exp spectrum = CoefficientSpectrum.doOperation(spectrum, exp)
+
 
 type SampledSpectrum() =
     inherit CoefficientSpectrum(30)
