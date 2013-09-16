@@ -17,7 +17,7 @@ module public PlaneTests =
         let transform = TranslateTransform (OffsetX = 1.0f, OffsetY = 2.0f, OffsetZ = 3.0f )
 
         // Act.
-        let plane = Plane(transform, transform.Inverse, false, point, normal)
+        let plane = Plane(transform, false, point, normal)
 
         // Assert.
         Assert.That(plane.Point, Is.EqualTo(point))
@@ -27,7 +27,7 @@ module public PlaneTests =
     let ``TryIntersect returns true when ray hits``() =
         // Arrange.
         let transform = TranslateTransform()
-        let plane = Plane(transform, transform.Inverse, false,
+        let plane = Plane(transform, false,
                           Point3D(0.0f, 0.0f, 0.0f), 
                           Normal3D(0.0f, 1.0f, 0.0f))
         let ray = RaySegment3D(Point3D(0.0f, 4.0f, 0.0f), 
@@ -46,7 +46,7 @@ module public PlaneTests =
     let ``TryIntersect returns false when ray misses``() =
         // Arrange.
         let transform = TranslateTransform()
-        let plane = Plane(transform, transform.Inverse, false, 
+        let plane = Plane(transform, false, 
                           Point3D(0.0f, 0.0f, 0.0f), 
                           Normal3D(0.0f, 1.0f, 0.0f))
         let ray = RaySegment3D(Point3D(0.0f, 1.0f, 0.0f), 
@@ -67,7 +67,7 @@ module public SphereTests =
     let ``can create instance``() =
         // Act.
         let transform = TranslateTransform (OffsetX = 1.0f, OffsetY = 2.0f, OffsetZ = 3.0f )
-        let sphere = Sphere(transform, transform.Inverse, false, 10.0f)
+        let sphere = Sphere(transform, false, 10.0f)
 
         // Assert.
         Assert.That(sphere.Radius, Is.EqualTo(10.0f))
@@ -76,7 +76,7 @@ module public SphereTests =
     let ``TryIntersect returns true when ray hits``() =
         // Arrange.
         let transform = TranslateTransform (OffsetZ = 3.0f)
-        let sphere = Sphere(transform, transform.Inverse, false, 10.0f) 
+        let sphere = Sphere(transform, false, 10.0f) 
         let ray = RaySegment3D(Point3D(0.0f, 0.0f, 20.0f), 
                                Vector3D.Forward, 0.0f, 
                                System.Single.MaxValue, 
@@ -93,7 +93,7 @@ module public SphereTests =
     let ``TryIntersect returns false when ray misses``() =
         // Arrange.
         let transform = TranslateTransform (OffsetZ = 3.0f)
-        let sphere = Sphere(transform, transform.Inverse, false, 10.0f) 
+        let sphere = Sphere(transform, false, 10.0f) 
         let ray = RaySegment3D(Point3D(20.0f, 0.0f, 20.0f), 
                                Vector3D.Forward, 0.0f, 
                                System.Single.MaxValue, 

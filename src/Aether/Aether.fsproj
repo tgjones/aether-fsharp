@@ -50,6 +50,7 @@
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <ItemGroup>
     <None Include="packages.config" />
+    <Compile Include="Spectrum.fs" />
     <Compile Include="Math.fs" />
     <Compile Include="Lights.fs" />
     <Compile Include="Shapes.fs" />

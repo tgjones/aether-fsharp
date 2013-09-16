@@ -31,8 +31,7 @@ namespace Aether.Studio.Modules.DemoSceneViewer.Scenes
 				new IntPoint2D(0, 0),
 				new IntPoint2D(film.XRes, film.YRes));
 
-		    var transform = new TranslateTransform();
-            var shape = new Sphere(transform, transform.Inverse, false, 5);
+            var shape = new Sphere(new TranslateTransform(), false, 5);
 			var primitive = new GeometricPrimitive(shape, new MatteMaterial(ColorsF.Green));
 
 			var lights = new List<Light>();

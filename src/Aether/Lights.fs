@@ -26,20 +26,22 @@ type VisibilityTester(ray : RaySegment3D) =
 
 
 [<AbstractClass>]
-type Light(transform : Transform3D) =
+type Light(lightToWorld : Transform3D) =
     /// <summary>
     /// Calculates the radiance arriving at the specified world-space point due to this light. 
     /// </summary>
     /// <param name="point"></param>
     /// <param name="directionToLight"></param>
     /// <returns></returns>
-    abstract member Evaluate: Point3D -> (ColorF * Vector3D * VisibilityTester)
+    abstract Evaluate : Point3D -> (ColorF * Vector3D * VisibilityTester)
+
+//    abstract Power : IIntersectable -> ColorF
 
 
-type PointLight(transform, intensity : ColorF) =
-    inherit Light(transform)
+type PointLight(lightToWorld, intensity : ColorF) =
+    inherit Light(lightToWorld)
 
-    let position = transform.Transform(Point3D.Zero)
+    let position = lightToWorld.Transform(Point3D.Zero)
 
     override this.Evaluate point =
         let vectorToLight = position - point
@@ -49,10 +51,10 @@ type PointLight(transform, intensity : ColorF) =
         (result, directionToLight, visibilityTester)
 
 
-type DirectionalLight(transform, direction : Vector3D, radiance) =
-    inherit Light(transform)
+type DirectionalLight(lightToWorld, direction : Vector3D, radiance) =
+    inherit Light(lightToWorld)
 
-    let direction = Vector3D.Normalize(transform.Transform(direction))
+    let direction = Vector3D.Normalize(lightToWorld.Transform(direction))
 
     override this.Evaluate point =
         let visibilityTester = VisibilityTester.Create (point, direction)
