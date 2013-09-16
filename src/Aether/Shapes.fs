@@ -17,8 +17,10 @@ type DifferentialGeometry(point, dpDu : Vector3D, dpDv : Vector3D, dnDu, dnDv, u
         () // TODO
 
 
-and [<AbstractClass>] Shape(objectToWorld : Transform3D) =
+and [<AbstractClass>] Shape(objectToWorld : Transform3D, reverseOrientation : bool) =
+
     let worldToObject = objectToWorld.Inverse
+    let transformSwapsHandedness = objectToWorld.SwapsHandedness
 
     abstract ObjectSpaceBounds: AxisAlignedBox3D
 
@@ -28,6 +30,9 @@ and [<AbstractClass>] Shape(objectToWorld : Transform3D) =
 
     member this.ObjectToWorld = objectToWorld
     member this.WorldToObject = worldToObject
+
+    abstract GetShadingGeometry : Transform3D -> DifferentialGeometry -> DifferentialGeometry
+    default this.GetShadingGeometry obj2World dg = dg
 
 
 and [<AbstractClass>] IntersectableShape(objectToWorld) =
