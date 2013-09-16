@@ -17,9 +17,10 @@ type DifferentialGeometry(point, dpDu : Vector3D, dpDv : Vector3D, dnDu, dnDv, u
         () // TODO
 
 
-and [<AbstractClass>] Shape(objectToWorld : Transform3D, reverseOrientation : bool) =
+and [<AbstractClass>] Shape(objectToWorld : Transform3D, 
+                            worldToObject : Transform3D, 
+                            reverseOrientation : bool) =
 
-    let worldToObject = objectToWorld.Inverse
     let transformSwapsHandedness = objectToWorld.SwapsHandedness
 
     abstract ObjectSpaceBounds: AxisAlignedBox3D
@@ -35,8 +36,8 @@ and [<AbstractClass>] Shape(objectToWorld : Transform3D, reverseOrientation : bo
     default this.GetShadingGeometry obj2World dg = dg
 
 
-and [<AbstractClass>] IntersectableShape(objectToWorld) =
-    inherit Shape(objectToWorld)
+and [<AbstractClass>] IntersectableShape(objectToWorld, worldToObject, reverseOrientation) =
+    inherit Shape(objectToWorld, worldToObject, reverseOrientation)
 
     abstract TryIntersect : RaySegment3D -> (bool * single * option<DifferentialGeometry>)
 
@@ -46,14 +47,14 @@ and [<AbstractClass>] IntersectableShape(objectToWorld) =
         result
 
 
-and [<AbstractClass>] RefinableShape(objectToWorld) =
-    inherit Shape(objectToWorld)
+and [<AbstractClass>] RefinableShape(objectToWorld, worldToObject, reverseOrientation) =
+    inherit Shape(objectToWorld, worldToObject, reverseOrientation)
 
     abstract Refine : unit -> Shape list
 
 
-type Plane(objectToWorld, point, normal) =
-    inherit IntersectableShape(objectToWorld)
+type Plane(objectToWorld, worldToObject, reverseOrientation, point, normal) =
+    inherit IntersectableShape(objectToWorld, worldToObject, reverseOrientation)
 
     member this.Point = point
     member this.Normal = normal
@@ -65,8 +66,8 @@ type Plane(objectToWorld, point, normal) =
         raise (System.NotImplementedException())
 
 
-type Sphere(objectToWorld, radius) =
-    inherit IntersectableShape(objectToWorld)
+type Sphere(objectToWorld, worldToObject, reverseOrientation, radius) =
+    inherit IntersectableShape(objectToWorld, worldToObject, reverseOrientation)
 
     let phiMax = MathUtility.TWO_PI
     let thetaMin = MathUtility.PI
@@ -174,13 +175,13 @@ type Sphere(objectToWorld, radius) =
                     intersect tHitTemp
 
 
-type TriangleMesh(objectToWorld, numTriangles, numVertices, 
+type TriangleMesh(objectToWorld, worldToObject, reverseOrientation, numTriangles, numVertices, 
                   vertexIndices : int[],
                   points : Point3D list,
                   normals : Normal3D list,
                   s,
                   textureCoordinates : Point2D list option) =
-    inherit RefinableShape(objectToWorld)
+    inherit RefinableShape(objectToWorld, worldToObject, reverseOrientation)
 
     // Transform mesh vertices to world space.
     let worldSpacePoints = points |> List.map objectToWorld.Transform
@@ -194,11 +195,11 @@ type TriangleMesh(objectToWorld, numTriangles, numVertices,
 
     override this.Refine () =
         [ for n in [0 .. numTriangles-1] ->
-              Triangle(objectToWorld, this, n) :> Shape ]
+              Triangle(objectToWorld, worldToObject, reverseOrientation, this, n) :> Shape ]
 
 
-and Triangle(objectToWorld, mesh : TriangleMesh, n) =
-    inherit IntersectableShape(objectToWorld)
+and Triangle(objectToWorld, worldToObject, reverseOrientation, mesh : TriangleMesh, n) =
+    inherit IntersectableShape(objectToWorld, worldToObject, reverseOrientation)
 
     let vertexIndices = mesh.VertexIndices.[n..n+2]
 
