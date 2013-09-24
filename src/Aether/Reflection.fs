@@ -4,6 +4,8 @@ open System
 open System.Collections.Generic
 open Nexus
 open Nexus.Graphics.Colors
+open Aether.Math
+open Aether.Geometry
 open Aether.Shapes
 
 
@@ -24,16 +26,14 @@ type BxdfType =
     | All             = 0b11111 // AllReflection | AllTransmission
 
 
-/// <summary>
 /// Base class for Brdf (Bi-directional Reflectance Distribution Function)
 /// and Btdf (Bi-directional Transmittance Distribution Function)
-/// </summary>
 [<AbstractClass>]
 type Bxdf(bxdfType) =
-    abstract member Evaluate: Vector3D -> Vector3D -> ColorF
+    abstract member Evaluate : Vector -> Vector -> Spectrum
 
 
-type Lambertian(reflectance : ColorF) =
+type Lambertian(reflectance : Spectrum) =
     inherit Bxdf(BxdfType.Reflection ||| BxdfType.Diffuse)
 
     override this.Evaluate incoming outgoing =
@@ -43,7 +43,7 @@ type Lambertian(reflectance : ColorF) =
 type OrenNayar(reflectance, sigma) =
     inherit Bxdf(BxdfType.Reflection ||| BxdfType.Diffuse)
 
-    let sigmaRadians = MathUtility.ToRadians(sigma)
+    let sigmaRadians = toRadians sigma
     let sigma2 = sigma * sigma
     let a = 1.0f - (sigma2 / (2.0f * (sigma2 + 0.33f)))
     let b = 0.45f * sigma2 / (sigma2 + 0.09f)
@@ -55,8 +55,8 @@ type OrenNayar(reflectance, sigma) =
 type Bsdf(dg : DifferentialGeometry, geometricNormal) =
     let bxdfs = List<Bxdf>()
     let nn = dg.Normal
-    let sn = Vector3D.Normalize(dg.DpDu)
-    let tn = Vector3D.Cross(nn, sn)
+    let sn = dg.DpDu |> Vector.normalize
+    let tn = cross nn sn
 
     member this.DifferentialGeometry = dg
 
@@ -69,15 +69,15 @@ type Bsdf(dg : DifferentialGeometry, geometricNormal) =
     member this.Evaluate(outgoingWorld, incomingWorld, ?flags0) =
         let flags = defaultArg flags0 BxdfType.All
 
-        let worldToLocal (v : Vector3D) =
-            Vector3D(Vector3D.Dot(v, sn), 
-                     Vector3D.Dot(v, tn), 
-                     Vector3D.Dot(v, nn))
+        let worldToLocal (v : Vector) =
+            Vector(dot v sn, 
+                   dot v tn, 
+                   dot v nn)
 
         let outgoing = worldToLocal(outgoingWorld)
         let incoming = worldToLocal(incomingWorld)
 
-        let mutable result = ColorF()
+        let mutable result = Spectrum()
         for bxdf in bxdfs do
             result <- result + (bxdf.Evaluate incoming outgoing)
         result

@@ -3,8 +3,9 @@
 open Nexus
 open Nexus.Graphics.Colors
 open Aether
-open Aether.Lights
 open Aether.Math
+open Aether.Geometry
+open Aether.Lights
 open Aether.Primitives
 open Aether.Sampling
 
@@ -12,12 +13,12 @@ open Aether.Sampling
 type IIntegratableScene =
     inherit IIntersectable
     abstract Lights : seq<Light>
-    abstract TryIntersect : RaySegment3D -> (bool * option<Intersection>)
+    abstract TryIntersect : RaySegment -> (bool * option<Intersection>)
 
 
 [<AbstractClass>]
 type Integrator() =
-    abstract Li : IIntegratableScene -> RaySegment3D -> Sample -> ColorF
+    abstract Li : IIntegratableScene -> RaySegment -> Sample -> Spectrum
 
     abstract Preprocess : IIntegratableScene -> unit
     default this.Preprocess scene = ()
@@ -33,17 +34,13 @@ type WhittedIntegrator(maxDepth) =
 
     override this.Li scene ray sample =
         // Search for ray-primitive intersection
-        let (intersects, intersection) = scene.TryIntersect(ray)
-        if not(intersects) then
-            // Handle ray with no intersection
-            // TODO: Iterate through lights to see what they contribute to this ray
-            ColorsF.Black
-        else
+        match scene.TryIntersect(ray) with
+        | (true, Some(intersection)) ->
             // TODO: Initialize alpha for ray hit.
 
             // Compute emitted and reflected light at ray intersection point.
             // Evaluate BSDF at hit point.
-            let bsdf = (Option.get intersection).GetBsdf(ray)
+            let bsdf = intersection.GetBsdf(ray)
 
             // Initialize common variables for Whitted integrator.
             let p = bsdf.ShadingGeometry.Point
@@ -53,15 +50,19 @@ type WhittedIntegrator(maxDepth) =
             // TODO: Compute emitted light if ray hit an area light source.
 
             // Add contribution of each light source.
-            let mutable result = ColorF()
+            let mutable result = Spectrum()
             for light in scene.Lights do
-                let (li, directionToLight, visibilityTester) = light.Evaluate(p)
+                let (li, directionToLight, visibilityTester) = light.Evaluate p intersection.RayEpsilon ray.Time
 
-                if not(li.IsEmpty()) then // Early exit for no light
+                if not(li.Black()) then // Early exit for no light
                     let f = bsdf.Evaluate(wo, directionToLight)
-                    if not(f.IsEmpty()) && visibilityTester.Unoccluded(scene) then
-                        result <- result + f * li * Vector3D.AbsDot(directionToLight, n)
+                    if not(f.Black()) && visibilityTester |> VisibilityTester.unoccluded scene then
+                        result <- result + f * li * (absdot directionToLight n)
                             //* visibilityTester.Transmittance(scene);
 
             // TODO --_rayDepth; 
             result
+        | _ ->
+            // Handle ray with no intersection
+            // TODO: Iterate through lights to see what they contribute to this ray
+            Spectrum()

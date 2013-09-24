@@ -2,6 +2,7 @@
 
 open Nexus.Graphics
 open Nexus.Graphics.Colors
+open Aether.Math
 open Aether.Sampling
 
 
@@ -14,7 +15,7 @@ type Film(xRes, yRes) =
 
     member this.AspectRatio = aspectRatio
 
-    abstract AddSample : Sample -> ColorF -> unit
+    abstract AddSample : Sample -> Spectrum -> unit
 
 
 type ColorSurfaceFilm(xRes, yRes, multiSampleCount) =
@@ -23,7 +24,7 @@ type ColorSurfaceFilm(xRes, yRes, multiSampleCount) =
     let surface = new ColorSurface(xRes, yRes, multiSampleCount)
 
     override this.AddSample sample c =
-        surface.[sample.ImageX, sample.ImageY, 0] <- c
+        surface.[sample.ImageX, sample.ImageY, 0] <- ColorF(c.ToColorRgbF(), 1.0f)
 
     member this.Present imageBuffer =
         surface.Resolve(imageBuffer)

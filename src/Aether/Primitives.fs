@@ -3,12 +3,18 @@
 open System.Collections.Generic
 open Nexus.Graphics.Transforms
 open Aether.Math
+open Aether.Geometry
+open Aether.Transforms
+open Aether.Shapes
 open Aether.Reflection
 open Aether.Materials
-open Aether.Shapes
 
 
-type Intersection(primitive : Primitive, dg : DifferentialGeometry, worldToObject) =
+type Intersection(primitive : Primitive, dg : DifferentialGeometry,
+                  worldToObject, rayEpsilon : single) =
+    
+    member this.RayEpsilon = rayEpsilon
+
     member this.GetBsdf ray =
         dg.ComputeDifferentials(ray)
         primitive.GetBsdf dg worldToObject
@@ -30,10 +36,10 @@ and [<AbstractClass>] Primitive() =
 
     abstract Refine : unit -> Primitive list
 
-    abstract TryIntersect : RaySegment3D -> (bool * option<Intersection>)
-    abstract Intersects : RaySegment3D -> bool
+    abstract TryIntersect : RaySegment -> (bool * option<Intersection>)
+    abstract Intersects : RaySegment -> bool
 
-    abstract GetBsdf : DifferentialGeometry -> Transform3D -> Bsdf
+    abstract GetBsdf : DifferentialGeometry -> Transform -> Bsdf
 
 
 type GeometricPrimitive(shape : Shape, material : Material) =
@@ -53,13 +59,13 @@ type GeometricPrimitive(shape : Shape, material : Material) =
     override this.TryIntersect ray =
         match shape with
         | :? IntersectableShape as s ->
-            let (result, tHit, dg) = s.TryIntersect(ray)
-            if not(result) then
-                (false, None)
-            else
-                let intersection = Intersection(this, Option.get dg, shape.WorldToObject)
+            match s.TryIntersect(ray) with
+            | (true, tHit, rayEpsilon, Some(dg)) ->
+                let intersection = Intersection(this, dg, shape.WorldToObject, rayEpsilon)
                 ray.MaxT <- tHit
                 (true, Some(intersection))
+            | _ ->
+                (false, None)
         | _ -> failwith "Shape is not intersectable"
 
     override this.Intersects ray =

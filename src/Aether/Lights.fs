@@ -1,6 +1,8 @@
 ﻿namespace Aether.Lights
 
 open Aether
+open Aether.Geometry
+open Aether.Transforms
 open Aether.Math
 open Nexus
 open Nexus.Graphics.Colors
@@ -9,53 +11,57 @@ open Nexus.Objects3D
 
 
 type IIntersectable =
-    abstract Intersects : RaySegment3D -> bool
+    abstract Intersects : RaySegment -> bool
 
 
-type VisibilityTester(ray : RaySegment3D) =
-    static member Create (p, v) =
-        new VisibilityTester(new RaySegment3D(p, v, RaySegment3D.Epsilon))
+type VisibilityTester(ray : RaySegment) =
+    member this.Ray = ray
 
-    static member Create (p1, p2) =
-        new VisibilityTester(
-            new RaySegment3D(p1, p2 - p1, RaySegment3D.Epsilon,
-                             1.0f - RaySegment3D.Epsilon))
+[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
+[<RequireQualifiedAccess>]
+module VisibilityTester =
 
-    member this.Unoccluded (scene : IIntersectable) =
-        not(scene.Intersects ray)
+    let initPoints (p1 : Point) epsilon1 (p2 : Point) epsilon2 time =
+        let distance = Point.distance p1 p2
+        let ray = RaySegment(p1, p2 - p1, epsilon1,
+                   distance * (1.0f - epsilon2),
+                   time)
+        VisibilityTester(ray)
+
+    let initPointVector p epsilon w time =
+        let ray = RaySegment(p, w, epsilon, infinityf, time)
+        VisibilityTester(ray)
+
+    let unoccluded (scene : IIntersectable) (tester : VisibilityTester) =
+        not(scene.Intersects tester.Ray)
 
 
 [<AbstractClass>]
-type Light(lightToWorld : Transform3D) =
-    /// <summary>
+type Light(lightToWorld : Transform) =
     /// Calculates the radiance arriving at the specified world-space point due to this light. 
-    /// </summary>
-    /// <param name="point"></param>
-    /// <param name="directionToLight"></param>
-    /// <returns></returns>
-    abstract Evaluate : Point3D -> (ColorF * Vector3D * VisibilityTester)
+    abstract Evaluate : Point -> single -> single -> (Spectrum * Vector * VisibilityTester)
 
 //    abstract Power : IIntersectable -> ColorF
 
 
-type PointLight(lightToWorld, intensity : ColorF) =
+type PointLight(lightToWorld, intensity : Spectrum) =
     inherit Light(lightToWorld)
 
-    let position = lightToWorld.Transform(Point3D.Zero)
+    let position = lightToWorld |> Transform.applyp Point.zero
 
-    override this.Evaluate point =
+    override this.Evaluate point epsilon time =
         let vectorToLight = position - point
-        let directionToLight = Vector3D.Normalize(vectorToLight)
-        let visibilityTester = VisibilityTester.Create (point, position)
-        let result = intensity / vectorToLight.LengthSquared()
+        let directionToLight = Vector.normalize vectorToLight
+        let visibilityTester = VisibilityTester.initPoints point epsilon position 0.0f time
+        let result = intensity / (Vector.lengthSq vectorToLight)
         (result, directionToLight, visibilityTester)
 
 
-type DirectionalLight(lightToWorld, direction : Vector3D, radiance) =
+type DistantLight(lightToWorld, radiance, direction) =
     inherit Light(lightToWorld)
 
-    let direction = Vector3D.Normalize(lightToWorld.Transform(direction))
+    let direction = lightToWorld |> Transform.applyv direction |> Vector.normalize
 
-    override this.Evaluate point =
-        let visibilityTester = VisibilityTester.Create (point, direction)
+    override this.Evaluate point epsilon time =
+        let visibilityTester = VisibilityTester.initPointVector point epsilon direction time
         (radiance, direction, visibilityTester)
