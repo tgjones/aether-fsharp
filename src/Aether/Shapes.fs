@@ -1,8 +1,5 @@
 ﻿namespace Aether.Shapes
 
-open Nexus
-open Nexus.Graphics.Transforms
-open Nexus.Objects3D
 open Aether.Math
 open Aether.Geometry
 open Aether.Transforms
@@ -35,7 +32,7 @@ and [<AbstractClass>] Shape(objectToWorld, reverseOrientation) =
     member this.ObjectToWorld = objectToWorld
     member this.WorldToObject = worldToObject
 
-    abstract GetShadingGeometry : Transform3D -> DifferentialGeometry -> DifferentialGeometry
+    abstract GetShadingGeometry : Transform -> DifferentialGeometry -> DifferentialGeometry
     default this.GetShadingGeometry obj2World dg = dg
 
     member this.TransformSwapsHandedness = transformSwapsHandedness
@@ -75,9 +72,9 @@ type Plane(objectToWorld, reverseOrientation, point, normal) =
 type Sphere(objectToWorld, reverseOrientation, radius) =
     inherit IntersectableShape(objectToWorld, reverseOrientation)
 
-    let phiMax = MathUtility.TWO_PI
+    let phiMax = pi * 2.0f
     let thetaMin = pi
-    let thetaMax = MathUtility.TWO_PI
+    let thetaMax = pi * 2.0f
 
     member this.Radius = radius
 
@@ -112,7 +109,7 @@ type Sphere(objectToWorld, reverseOrientation, radius) =
                     let pHit = transformedRay |> RaySegment.evaluate tHitTemp
                     let mutable phi = atan2 pHit.Y pHit.X
                     if phi < 0.0f then
-                        phi <- phi + MathUtility.TWO_PI
+                        phi <- phi + pi * 2.0f
 
                     // Find parametric representation of sphere hit.
                     let u = phi / phiMax
@@ -182,12 +179,15 @@ type Sphere(objectToWorld, reverseOrientation, radius) =
         | _ -> defaultOutput
 
 
+type TextureCoordinate = { X : single; Y : single }
+
+
 type TriangleMesh(objectToWorld, reverseOrientation, numTriangles, numVertices, 
                   vertexIndices : int[],
                   points : Point list,
                   normals : Normal list,
                   s,
-                  textureCoordinates : Point2D list option) =
+                  textureCoordinates : TextureCoordinate list option) =
     inherit RefinableShape(objectToWorld, reverseOrientation)
 
     // Transform mesh vertices to world space.
@@ -226,9 +226,9 @@ and Triangle(objectToWorld, reverseOrientation, mesh : TriangleMesh, n) =
               uvs.[vertexIndices.[1]]
               uvs.[vertexIndices.[2]] ]
         | None ->
-            [ Point2D(0.0f, 0.0f)
-              Point2D(1.0f, 0.0f)
-              Point2D(1.0f, 1.0f) ]
+            [ { X = 0.0f; Y = 0.0f }
+              { X = 1.0f; Y = 0.0f }
+              { X = 0.0f; Y = 1.0f } ]
 
     override this.ObjectSpaceBounds =
         BBox.fromPointList [ this.WorldToObject |>> p1

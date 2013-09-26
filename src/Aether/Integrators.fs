@@ -1,7 +1,5 @@
 ﻿namespace Aether.Integrators
 
-open Nexus
-open Nexus.Graphics.Colors
 open Aether
 open Aether.Math
 open Aether.Geometry
@@ -50,14 +48,15 @@ type WhittedIntegrator(maxDepth) =
             // TODO: Compute emitted light if ray hit an area light source.
 
             // Add contribution of each light source.
-            let mutable result = Spectrum()
+            let mutable result = Spectrum.Black
             for light in scene.Lights do
                 let (li, directionToLight, visibilityTester) = light.Evaluate p intersection.RayEpsilon ray.Time
 
-                if not(li.Black()) then // Early exit for no light
+                if not(li.IsBlack()) then // Early exit for no light
                     let f = bsdf.Evaluate(wo, directionToLight)
-                    if not(f.Black()) && visibilityTester |> VisibilityTester.unoccluded scene then
-                        result <- result + f * li * (absdot directionToLight n)
+                    if not(f.IsBlack()) && visibilityTester |> VisibilityTester.unoccluded scene then
+                        // TODO : Following line isn't great...
+                        result <- CoefficientSpectrum.op_Addition(result, CoefficientSpectrum.op_Multiply(f * li, (absdot directionToLight n)))
                             //* visibilityTester.Transmittance(scene);
 
             // TODO --_rayDepth; 
@@ -65,4 +64,4 @@ type WhittedIntegrator(maxDepth) =
         | _ ->
             // Handle ray with no intersection
             // TODO: Iterate through lights to see what they contribute to this ray
-            Spectrum()
+            Spectrum.Black

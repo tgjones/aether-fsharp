@@ -1,7 +1,7 @@
 ﻿namespace Aether.Filters
 
 open System
-open Nexus
+open Aether.Math
 
 
 /// Filters are used by the <see cref="Film" /> class to filter output before 
@@ -33,11 +33,11 @@ type BoxFilter(xWidth, yWidth) =
 type GaussianFilter(xWidth, yWidth, alpha) =
     inherit Filter(xWidth, yWidth)
 
-    let expX = MathUtility.Exp(-alpha * xWidth * xWidth)
-    let expY = MathUtility.Exp(-alpha * yWidth * yWidth)
+    let expX = exp (-alpha * xWidth * xWidth)
+    let expY = exp (-alpha * yWidth * yWidth)
 
     let gaussian d expv =
-        Math.Max(0.0f, MathUtility.Exp(-alpha * d * d) - expv)
+        max 0.0f ((exp (-alpha * d * d)) - expv)
 
     override this.Evaluate x y =
         (gaussian x expX) * (gaussian y expY)
@@ -79,9 +79,9 @@ type LanczosSincFilter(xWidth, yWidth, tau) =
         if x < 10.0f ** -5.0f then 1.0f
         elif x > 1.0f then 0.0f
         else
-            let x'' = x' * MathUtility.PI
-            let sinc = MathUtility.Sin(x'') / x''
-            let lanczos = MathUtility.Sin(x'' * tau) / (x'' * tau)
+            let x'' = x' * pi
+            let sinc = sin x'' / x''
+            let lanczos = (sin (x'' * tau)) / (x'' * tau)
             sinc * lanczos
 
     override this.Evaluate x y =

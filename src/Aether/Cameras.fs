@@ -1,7 +1,5 @@
 ﻿namespace Aether.Cameras
 
-open Nexus
-open Nexus.Graphics
 open Aether.Math
 open Aether.Geometry
 open Aether.Transforms

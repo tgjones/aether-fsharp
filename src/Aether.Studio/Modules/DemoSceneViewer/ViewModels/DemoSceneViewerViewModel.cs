@@ -2,7 +2,6 @@
 using Aether.Films;
 using Aether.Studio.Framework;
 using Aether.Studio.Modules.DemoSceneViewer.Scenes;
-using Nexus.Graphics;
 
 namespace Aether.Studio.Modules.DemoSceneViewer.ViewModels
 {
@@ -24,13 +23,11 @@ namespace Aether.Studio.Modules.DemoSceneViewer.ViewModels
 
 		protected override void Draw()
 		{
-			var film = new ColorSurfaceFilm(OutputBitmap.PixelWidth, OutputBitmap.PixelHeight, 1);
+			var film = new WriteableBitmapFilm(OutputBitmap);
 			var scene = _scene.CreateScene(film);
 			scene.Render();
 
-			var bitmapWrapper = new WriteableBitmapWrapper(OutputBitmap);
-			film.Present(new WriteableBitmapBuffer(bitmapWrapper));
-			bitmapWrapper.Invalidate();
+			film.Present();
 		}
 	}
 }

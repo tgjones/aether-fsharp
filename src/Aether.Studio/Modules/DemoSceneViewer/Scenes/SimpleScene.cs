@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Aether.Cameras;
 using Aether.Films;
 using Aether.Geometry;
@@ -10,8 +9,6 @@ using Aether.Primitives;
 using Aether.Sampling;
 using Aether.Shapes;
 using Aether.Transforms;
-using Nexus;
-using Nexus.Graphics.Colors;
 
 namespace Aether.Studio.Modules.DemoSceneViewer.Scenes
 {
@@ -26,15 +23,15 @@ namespace Aether.Studio.Modules.DemoSceneViewer.Scenes
 			var surfaceIntegrator = new WhittedIntegrator(6);
 
 			var sampler = new RegularSampler(
-				new IntPoint2D(0, 0),
-				new IntPoint2D(film.XRes, film.YRes));
+				0, film.XRes,
+                0, film.YRes);
 
             var shape = new Sphere(TransformModule.Translate(VectorModule.Zero), false, 5);
-            var primitive = new GeometricPrimitive(shape, new MatteMaterial(new Spectrum())); // Green
+            var primitive = new GeometricPrimitive(shape, new MatteMaterial(new RgbSpectrum(new [] { 0.0f, 1.0f, 0.0f}))); // Green
 
             var lights = new List<Light>();
-            lights.Add(new DistantLight(TransformModule.Translate(VectorModule.Zero), 
-                new Spectrum(), new Vector(0, -1, 0))); // White.
+            lights.Add(new DistantLight(TransformModule.Translate(VectorModule.Zero),
+                new RgbSpectrum(new[] { 1.0f, 1.0f, 1.0f }), new Vector(0, -1, 0))); // White.
 
             return new Scene(camera, surfaceIntegrator, sampler, primitive, lights);
 		}

@@ -1,7 +1,6 @@
 ﻿namespace Aether.Sampling
 
 open System.Collections.Generic
-open Nexus
 
 
 type Sample(imageX : int, imageY : int) =
@@ -10,17 +9,12 @@ type Sample(imageX : int, imageY : int) =
 
 
 [<AbstractClass>]
-type Sampler(startPoint : IntPoint2D, endPoint : IntPoint2D) =
+type Sampler(xStart : int, xEnd : int, yStart : int, yEnd : int) =
     abstract GetSamples : unit -> seq<Sample>
 
 
-type RegularSampler(startPoint, endPoint) =
-    inherit Sampler(startPoint, endPoint)
-
-    let xStart = startPoint.X
-    let yStart = startPoint.Y
-    let xEnd = endPoint.X
-    let yEnd = endPoint.Y
+type RegularSampler(xStart, xEnd, yStart, yEnd) =
+    inherit Sampler(xStart, xEnd, yStart, yEnd)
 
     override this.GetSamples () =
         let xPos = ref xStart

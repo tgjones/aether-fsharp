@@ -1,11 +1,10 @@
 ﻿namespace ``Sampling - Regular sampler``
     open Xunit
     open FsUnit.Xunit
-    open Nexus
     open Aether.Sampling
 
     type ``Given a regular sampler with a width and height of 2`` () =
-        let sampler = RegularSampler(IntPoint2D(0, 0), IntPoint2D(2, 2))
+        let sampler = RegularSampler(0, 2, 0, 2)
 
         [<Fact>] 
         let ``when GetNextSample() is called, it returns 4 samples``() =

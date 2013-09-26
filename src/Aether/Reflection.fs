@@ -2,8 +2,7 @@
 
 open System
 open System.Collections.Generic
-open Nexus
-open Nexus.Graphics.Colors
+open Aether
 open Aether.Math
 open Aether.Geometry
 open Aether.Shapes
@@ -37,7 +36,7 @@ type Lambertian(reflectance : Spectrum) =
     inherit Bxdf(BxdfType.Reflection ||| BxdfType.Diffuse)
 
     override this.Evaluate incoming outgoing =
-        reflectance / MathUtility.PI
+        reflectance / pi
 
 
 type OrenNayar(reflectance, sigma) =
@@ -77,7 +76,7 @@ type Bsdf(dg : DifferentialGeometry, geometricNormal) =
         let outgoing = worldToLocal(outgoingWorld)
         let incoming = worldToLocal(incomingWorld)
 
-        let mutable result = Spectrum()
+        let mutable result = Spectrum.Black
         for bxdf in bxdfs do
             result <- result + (bxdf.Evaluate incoming outgoing)
         result

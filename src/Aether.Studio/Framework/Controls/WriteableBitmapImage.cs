@@ -34,7 +34,7 @@ namespace Aether.Studio.Framework.Controls
 			{
 				WriteableBitmap = new WriteableBitmap(
 					(int)arrangeSize.Width, (int)arrangeSize.Height,
-					96, 96, PixelFormats.Bgra32, null);
+					96, 96, PixelFormats.Pbgra32, null);
 				Source = WriteableBitmap;
 				_size = arrangeSize;
 			}

@@ -1,8 +1,5 @@
 ﻿namespace Aether.Math
 
-open Nexus
-open Nexus.Objects3D
-
 
 [<AutoOpen>]
 module GlobalFunctions =
@@ -81,21 +78,3 @@ module GlobalFunctions =
             let mutable t1 = c / q
             if t0 > t1 then swap &t0 &t1
             (Some(t0), Some(t1))
-
-
-[<AutoOpen>]
-module Extensions =
-    type Nexus.Graphics.Colors.Spectrum with
-        member this.ToColorRgbF () =
-            let xyzToRgb (xyz : single[]) (rgb : single[]) =
-                rgb.[0] <-  3.240479f*xyz.[0] - 1.537150f*xyz.[1] - 0.498535f*xyz.[2]
-                rgb.[1] <- -0.969256f*xyz.[0] + 1.875991f*xyz.[1] + 0.041556f*xyz.[2]
-                rgb.[2] <-  0.055648f*xyz.[0] - 0.204043f*xyz.[1] + 1.057311f*xyz.[2]
-
-            let xyz = Array.create 3 0.0f
-            this.Xyz(xyz)
-
-            let rgb = Array.create 3 0.0f
-            xyzToRgb xyz rgb
-
-            Nexus.Graphics.Colors.ColorRgbF(rgb.[0], rgb.[1], rgb.[2])

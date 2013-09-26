@@ -1,7 +1,6 @@
 ﻿namespace Aether.Primitives
 
 open System.Collections.Generic
-open Nexus.Graphics.Transforms
 open Aether.Math
 open Aether.Geometry
 open Aether.Transforms

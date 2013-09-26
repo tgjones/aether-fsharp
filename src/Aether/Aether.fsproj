@@ -74,21 +74,20 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
-    <Reference Include="Nexus">
-      <HintPath>..\packages\Nexus.2.1.0\lib\net40\Nexus.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Nexus.Wpf">
-      <HintPath>..\packages\Nexus.Wpf.2.1.0\lib\net40\Nexus.Wpf.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Piglet">
       <HintPath>..\packages\Piglet.1.4.0\lib\net40\Piglet.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="WindowsBase" />
+    <Reference Include="WriteableBitmapEx.Wpf">
+      <HintPath>..\packages\WriteableBitmapEx.1.0.8.0\lib\net40\WriteableBitmapEx.Wpf.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

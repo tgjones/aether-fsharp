@@ -27,40 +27,40 @@ type CoefficientSpectrum(coefficients : single[]) =
     member this.NumSamples = coefficients.Length
     member this.Coefficients = coefficients
 
-    static member private doOperation(left : CoefficientSpectrum, right : CoefficientSpectrum, op) =
+    static member private doOperation(left : #CoefficientSpectrum, right : #CoefficientSpectrum, op) =
         let leftc, rightc = left.Coefficients, right.Coefficients
-        CoefficientSpectrum.doOperation(left.NumSamples, (fun n -> (op leftc.[n] rightc.[n])), left.Clone())
+        CoefficientSpectrum.doOperation(left.NumSamples, (fun n -> (op leftc.[n] rightc.[n])), downcast left.Clone())
 
-    static member private doOperation(left : CoefficientSpectrum, right : single, op) =
+    static member private doOperation(left : #CoefficientSpectrum, right : single, op) =
         let leftc = left.Coefficients
-        CoefficientSpectrum.doOperation(left.NumSamples, (fun n -> (op leftc.[n] right)), left.Clone())
+        CoefficientSpectrum.doOperation(left.NumSamples, (fun n -> (op leftc.[n] right)), downcast left.Clone())
 
-    static member private doOperation(value : CoefficientSpectrum, op) =
+    static member private doOperation(value : #CoefficientSpectrum, op) =
         let valuec = value.Coefficients
-        CoefficientSpectrum.doOperation(value.NumSamples, (fun n -> (op valuec.[n])), value.Clone())
+        CoefficientSpectrum.doOperation(value.NumSamples, (fun n -> (op valuec.[n])), downcast value.Clone())
 
-    static member private doOperation(numSamples, op, result : CoefficientSpectrum) =
+    static member private doOperation(numSamples, op, result : #CoefficientSpectrum) =
         let c = result.Coefficients
         for n in [0 .. numSamples-1] do
             c.[n] <- (op n)
         result
 
-    static member (+) (left : CoefficientSpectrum, right : CoefficientSpectrum) =
+    static member (+) (left : #CoefficientSpectrum, right : #CoefficientSpectrum) =
         CoefficientSpectrum.doOperation(left, right, (+))
 
-    static member (-) (left : CoefficientSpectrum, right : CoefficientSpectrum) =
+    static member (-) (left : #CoefficientSpectrum, right : #CoefficientSpectrum) =
         CoefficientSpectrum.doOperation(left, right, (-))
 
-    static member (/) (left : CoefficientSpectrum, right : CoefficientSpectrum) =
+    static member (/) (left : #CoefficientSpectrum, right : #CoefficientSpectrum) =
         CoefficientSpectrum.doOperation(left, right, (/))
 
-    static member (/) (left : CoefficientSpectrum, right : single) =
+    static member (/) (left : #CoefficientSpectrum, right : single) =
         CoefficientSpectrum.doOperation(left, right, (/))
 
-    static member (*) (left : CoefficientSpectrum, right : CoefficientSpectrum) =
+    static member (*) (left : #CoefficientSpectrum, right : #CoefficientSpectrum) =
         CoefficientSpectrum.doOperation(left, right, (*))
 
-    static member (*) (left : CoefficientSpectrum, right : single) =
+    static member (*) (left : #CoefficientSpectrum, right : single) =
         CoefficientSpectrum.doOperation(left, right, (*))
 
     static member Sqrt spectrum = CoefficientSpectrum.doOperation(spectrum, sqrt)
@@ -72,6 +72,9 @@ type CoefficientSpectrum(coefficients : single[]) =
         match other with
         | :? CoefficientSpectrum as s2 -> coefficients = s2.Coefficients
         | _ -> false
+
+    member this.IsBlack () =
+        coefficients |> Array.exists (fun x -> x <> 0.0f)
 
 
 type SampledSpectrum(coefficients) =
@@ -801,4 +804,12 @@ type RgbSpectrum(rgb) =
         SpectrumUtilities.xyzToRgb [| x; y; z |] rgb
         RgbSpectrum(rgb)
 
+    static member Black = RgbSpectrum([| 0.0f; 0.0f; 0.0f |])
+
     override this.Clone() = RgbSpectrum(Array.copy rgb) :> CoefficientSpectrum
+
+    member this.ToXyz(xyz) =
+        SpectrumUtilities.rgbToXyz this.Coefficients xyz
+
+
+type Spectrum = RgbSpectrum

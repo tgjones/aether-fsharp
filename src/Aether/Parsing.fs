@@ -1,8 +1,9 @@
 ﻿module Aether.Parsing
 
-open Nexus
-open Nexus.Graphics.Colors
 open Piglet.Parser
+open Aether
+open Aether.Geometry
+open Aether.Transforms
 open Aether.ParsingUtilities
 
 
@@ -18,11 +19,10 @@ module Ast =
     and ParamValue =
         | IntegerValue of int
         | FloatValue of single
-        | PointValue of Point3D
-        | VectorValue of Vector3D
-        | NormalValue of Normal3D
-        | SpectrumValue // TODO
-        | ColorValue of ColorF
+        | PointValue of Point
+        | VectorValue of Vector
+        | NormalValue of Normal
+        | SpectrumValue of Spectrum
         | BoolValue of bool
         | StringValue of string
         | ArrayValue of ParamValue list
@@ -31,14 +31,14 @@ module Ast =
         | StandardDirective of directiveType : StandardDirectiveType * implementationType : string * parameters : ParamSet option
         | Texture of name : string * textureType : string * textureClass : string * parameters : ParamSet option
         | Identity
-        | Translate of Vector3D
-        | Scale of Vector3D
-        | Rotate of angle : single * axis : Vector3D
-        | LookAt of eye : Point3D * lookAt : Point3D * up : Vector3D
+        | Translate of Vector
+        | Scale of Vector
+        | Rotate of angle : single * axis : Vector
+        | LookAt of eye : Point * lookAt : Point * up : Vector
         | CoordinateSystem of string
         | CoordSysTransform of string
-        | Transform of Matrix3D
-        | ConcatTransform of Matrix3D
+        | Transform of Matrix4x4
+        | ConcatTransform of Matrix4x4
         | WorldBegin
         | WorldEnd
         | AttributeBegin
@@ -68,9 +68,9 @@ let paramSet              = nonTerminal<ParamSet>()
 let param                 = nonTerminal<Param>()
 let paramValueList        = nonTerminal<ParamValue list>()
 let paramValue            = nonTerminal<ParamValue>()
-let point3D               = nonTerminal<Point3D>()
-let vector3D              = nonTerminal<Vector3D>()
-let matrix3D              = nonTerminal<Matrix3D>()
+let point3D               = nonTerminal<Point>()
+let vector3D              = nonTerminal<Vector>()
+let matrix3D              = nonTerminal<Matrix4x4>()
 let floatOrInt            = nonTerminal<single>()
 
 // Terminals
@@ -132,19 +132,19 @@ let getParam (typeAndName : string) (value : ParamValue) =
                         | _ -> value
                    | "point" ->
                         match value with
-                        | ArrayValue([ FloatValue(x); FloatValue(y); FloatValue(z) ]) -> PointValue(Point3D(x, y, z))
+                        | ArrayValue([ FloatValue(x); FloatValue(y); FloatValue(z) ]) -> PointValue(Point(x, y, z))
                         | _ -> value
                    | "vector" ->
                         match value with
-                        | ArrayValue([ FloatValue(x); FloatValue(y); FloatValue(z) ]) -> VectorValue(Vector3D(x, y, z))
+                        | ArrayValue([ FloatValue(x); FloatValue(y); FloatValue(z) ]) -> VectorValue(Vector(x, y, z))
                         | _ -> value
                    | "normal" ->
                         match value with
-                        | ArrayValue([ FloatValue(x); FloatValue(y); FloatValue(z) ]) -> NormalValue(Normal3D(x, y, z))
+                        | ArrayValue([ FloatValue(x); FloatValue(y); FloatValue(z) ]) -> NormalValue(Normal(x, y, z))
                         | _ -> value
                    | "rgb" ->
                         match value with
-                        | ArrayValue([ FloatValue(r); FloatValue(g); FloatValue(b) ]) -> ColorValue(ColorF(r, g, b))
+                        | ArrayValue([ FloatValue(r); FloatValue(g); FloatValue(b) ]) -> SpectrumValue(RgbSpectrum([| r; g; b |]))
                         | _ -> value
                    | _ -> value
 
@@ -163,10 +163,10 @@ paramValueList.AddProduction(paramValue).SetReduceFunction (fun a -> [a])
 paramValue.AddProduction(floatOrInt).SetReduceFunction (fun a -> FloatValue(a))
 paramValue.AddProduction(quotedString).SetReduceFunction (fun a -> StringValue(a))
 
-point3D.AddProduction(floatOrInt, floatOrInt, floatOrInt).SetReduceFunction (fun a b c -> Point3D(a, b, c))
-vector3D.AddProduction(floatOrInt, floatOrInt, floatOrInt).SetReduceFunction (fun a b c -> Vector3D(a, b, c))
+point3D.AddProduction(floatOrInt, floatOrInt, floatOrInt).SetReduceFunction (fun a b c -> Point(a, b, c))
+vector3D.AddProduction(floatOrInt, floatOrInt, floatOrInt).SetReduceFunction (fun a b c -> Vector(a, b, c))
 matrix3D.AddProduction(floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt)
-    .SetReduceFunction (fun m00 m01 m02 m03 m10 m11 m12 m13 m20 m21 m22 m23 m30 m31 m32 m33 -> Matrix3D(m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33))
+    .SetReduceFunction (fun m00 m01 m02 m03 m10 m11 m12 m13 m20 m21 m22 m23 m30 m31 m32 m33 -> Matrix4x4.initValues m00 m01 m02 m03 m10 m11 m12 m13 m20 m21 m22 m23 m30 m31 m32 m33)
 floatOrInt.AddProduction(floatLiteral).SetReduceToFirst()
 floatOrInt.AddProduction(integerLiteral).SetReduceFunction (fun a -> single a)
 

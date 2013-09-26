@@ -4,10 +4,6 @@ open Aether
 open Aether.Geometry
 open Aether.Transforms
 open Aether.Math
-open Nexus
-open Nexus.Graphics.Colors
-open Nexus.Graphics.Transforms
-open Nexus.Objects3D
 
 
 type IIntersectable =
