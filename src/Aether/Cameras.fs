@@ -52,7 +52,7 @@ type OrthographicCamera(cam2World, screenWindow, shutterOpen, shutterClose,
     override this.GenerateRay sample =
         // Generate raster and camera samples.
         let rasterPoint = Point(single(sample.ImageX), single(sample.ImageY), 0.0f)
-        let cameraPoint = this.RasterToCamera |> Transform.applyp rasterPoint
+        let cameraPoint = this.RasterToCamera |>> rasterPoint
         let ray = RaySegment(cameraPoint, Vector(0.0f, 0.0f, 1.0f), 0.0f, infinityf)
 
         // TODO: Modify for depth of field.
@@ -74,7 +74,7 @@ type PerspectiveCamera(cam2World, screenWindow, shutterOpen, shutterClose,
     override this.GenerateRay sample =
         // Generate raster and camera samples.
         let rasterPoint = Point(single(sample.ImageX), single(sample.ImageY), 0.0f)
-        let cameraPoint = this.RasterToCamera |> Transform.applyp rasterPoint
+        let cameraPoint = this.RasterToCamera |>> rasterPoint
         let ray = RaySegment(Point.zero, cameraPoint |> Point.toVector |> Vector.normalize,
                              0.0f, infinityf)
         // TODO: Modify ray for depth of field.

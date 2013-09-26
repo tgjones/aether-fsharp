@@ -50,6 +50,9 @@ type Vector(x : single, y : single, z : single) =
         | :? Vector as p2 -> this.X = p2.X && this.Y = p2.Y && this.Z = p2.Z
         | _ -> false
 
+    override this.ToString() =
+        sprintf "{X:%f Y:%f Z:%f}" this.X this.Y this.Z
+
 
 and Point(x : single, y : single, z : single) =
     
@@ -86,10 +89,16 @@ and Point(x : single, y : single, z : single) =
     static member (/) (p : Point, f) =
         Point(p.X / f, p.Y / f, p.Z / f)
 
+    static member (~-) (v : Point) =
+        Point(-v.X, -v.Y, -v.Z)
+
     override this.Equals(other) =
         match other with
         | :? Point as p2 -> this.X = p2.X && this.Y = p2.Y && this.Z = p2.Z
         | _ -> false
+
+    override this.ToString() =
+        sprintf "{X:%f Y:%f Z:%f}" this.X this.Y this.Z
 
 
 and Normal(x : single, y : single, z : single) =
@@ -123,21 +132,29 @@ and Normal(x : single, y : single, z : single) =
         | :? Normal as p2 -> this.X = p2.X && this.Y = p2.Y && this.Z = p2.Z
         | _ -> false
 
+    override this.ToString() =
+        sprintf "{X:%f Y:%f Z:%f}" this.X this.Y this.Z
+
 
 [<AutoOpen>]
-module VectorOperations =
+module GenericVectorOperations =
 
+    /// Calculates the dot product.
     let inline dot (v1 : #IVector) (v2 : #IVector) =
         v1.X * v2.X + v1.Y * v2.Y + v1.Z * v2.Z
 
+    /// Calculates the dot product, and then calls abs on the result.
     let inline absdot (v1 : #IVector) (v2 : #IVector) =
         abs (v1.X * v2.X + v1.Y * v2.Y + v1.Z * v2.Z)
 
+    /// Calculates the cross product.
     let inline cross (v1 : #IVector) (v2 : #IVector) =
         Vector(v1.Y * v2.Z - v1.Z * v2.Y,
                v1.Z * v2.X - v1.X * v2.Z,
                v1.X * v2.Y - v1.Y * v2.X)
 
+    /// Flips a surface normal (v1) so that it lies in the same hemisphere as a
+    /// given vector (v2).
     let inline faceForward v1 v2 =
         if (dot v1 v2) < 0.0f then -v1 else v1
 
@@ -146,34 +163,61 @@ module VectorOperations =
 [<RequireQualifiedAccess>]
 module Vector =
 
+    /// Square of the length of the given vector.
     let inline lengthSq (v : Vector) =
         v.X * v.X + v.Y * v.Y + v.Z * v.Z
 
+    /// Length of the given vector.
     let inline length v =
         sqrt (lengthSq v)
 
+    /// Normalizes the given vector to unit length.
     let inline normalize v =
         let l = length v
         Vector(v.X / l, v.Y / l, v.Z / l)
+
+    /// Creates a coordinate system from a single vector, using the cross
+    /// product two times to get a set of three orthogonal vectors.
+    let inline coordinateSystem (v1 : Vector) =
+        let v2 =
+            if abs v1.X > abs v1.Y then
+                let invLen = 1.0f / (sqrt v1.X*v1.X + v1.Z*v1.Z)
+                Vector(-v1.Z * invLen, 0.0f, v1.X * invLen)
+            else
+                let invLen = 1.0f / (sqrt v1.Y*v1.Y + v1.Z*v1.Z)
+                Vector(0.0f, v1.Z * invLen, -v1.Y * invLen)
+        let v3 = cross v1 v2
+        (v2, v3)
         
+    /// Converts spherical coordinates (theta and phi) into a direction vector.
     let inline sphericalDirection sinTheta cosTheta phi =
         Vector(sinTheta * (cos phi), sinTheta * (sin phi), cosTheta)
 
-    let inline sphericalDirectionVector sinTheta cosTheta phi (x : Vector) (y : Vector) (z : Vector) =
+    /// Converts spherical coordinates (theta and phi) into a direction vector
+    /// with respect to the coordinate frame defined by the x, y and z vectors.
+    let inline sphericalDirection2 sinTheta cosTheta phi
+                                        (x : Vector) (y : Vector) (z : Vector) =
         (sinTheta * (cos phi) * x) + (sinTheta * (sin phi) * y) + (cosTheta * z)
 
+    /// Converts a vector direction to a spherical theta angle.
     let inline sphericalTheta (v : Vector) =
         acos (clamp v.Z -1.0f 1.0f)
 
+    /// Converts a vector direction to a spherical phi angle.
     let inline sphericalPhi (v : Vector) =
         let p = atan2 v.Y v.X
-
         if p < 0.0f then p + 2.0f * pi
         else p
 
+    /// Converts a vector direction to spherical coordinates (theta, phi).
+    let inline sphericalAngles (v : Vector) =
+        (sphericalTheta v, sphericalPhi v)
+
+    /// Vector(0.0f, 0.0f, 0.0f)
     [<CompiledName("Zero")>]
     let zero = Vector(0.0f, 0.0f, 0.0f)
 
+    /// Converts a Vector to a Normal.
     let inline toNormal (v : Vector) =
         Normal(v.X, v.Y, v.Z)
 
@@ -181,30 +225,36 @@ module Vector =
 [<RequireQualifiedAccess>]
 module Point =
 
+    /// Calculates the distance between two points.
     let distance (p1 : Point) (p2 : Point) =
         Vector.length (p1 - p2)
 
+    /// Calculates the square of the distance between two points.
     let distanceSq (p1 : Point) (p2 : Point) =
         Vector.lengthSq (p1 - p2)
 
+    /// Point(0.0f, 0.0f, 0.0f)
     [<CompiledName("Zero")>]
     let zero = Point(0.0f, 0.0f, 0.0f)
 
+    /// Converts a Point to a Vector.
     let inline toVector (p : Point) =
         Vector(p.X, p.Y, p.Z)
-
 
 
 [<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
 [<RequireQualifiedAccess>]
 module Normal =
 
+    /// Square of the length of the given normal.
     let inline lengthSq (v : Normal) =
         v.X * v.X + v.Y * v.Y + v.Z * v.Z
 
+    /// Length of the given normal.
     let inline length v =
         sqrt (lengthSq v)
 
+    /// Normalizes the given normal to unit length.
     let inline normalize v =
         let l = length v
         Normal(v.X / l, v.Y / l, v.Z / l)
@@ -230,11 +280,9 @@ type RaySegment(origin : Point, direction : Vector,
 [<RequireQualifiedAccess>]
 module RaySegment =
 
+    /// Gets the point at a particular position along a ray.
     let evaluate t (ray : RaySegment) =
         ray.Origin + ray.Direction * t
-
-    let withTime time (ray : RaySegment) =
-        RaySegment(ray.Origin, ray.Direction, ray.MinT, ray.MaxT, time)
 
 
 type BBox(min, max) =
@@ -247,65 +295,81 @@ type BBox(min, max) =
 module BBox =
     let empty = let i = infinityf in BBox(Point(i, i, i), Point(-i, -i, -i))
 
+    /// Creates a bounding box from two points.
     let fromPoints (p1 : Point) (p2 : Point) =
         BBox(Point(min p1.X p2.X, min p1.Y p2.Y, min p1.Z p2.Z),
              Point(max p1.X p2.X, max p1.Y p2.Y, max p1.Z p2.Z))
     
+    /// Creates a bounding box from one point.
     let fromPoint p = fromPoints p p
 
+    /// Creates a new bounding box large enough to contain both the original
+    /// bounding box and the given point.
     let unionBoxPoint (b : BBox) (p : Point) =
         let min = Point(min b.Min.X p.X, min b.Min.Y p.Y, min b.Min.Z p.Z)
         let max = Point(max b.Max.X p.X, max b.Max.Y p.Y, max b.Max.Z p.Z)
         BBox(min, max)
 
+    /// Creates a bounding box from the given point list.
     let fromPointList (points : Point list) =
         let mutable result = empty
         for point in points do
             result <- unionBoxPoint result point
         result
 
+    /// Creates a new bounding box large enough to contain the given two
+    /// bounding boxes.
     let unionBoxBox (b1 : BBox) (b2 : BBox) =
         let min = Point(min b1.Min.X b2.Min.X, min b1.Min.Y b2.Min.Y, min b1.Min.Z b2.Min.Z)
         let max = Point(max b1.Max.X b2.Max.X, max b1.Max.Y b2.Max.Y, max b1.Max.Z b2.Max.Z)
         BBox(min, max)
 
+    /// Returns true if any part of the two bounding boxes overlap.
     let overlaps (b1 : BBox) (b2 : BBox) =
         let x = b1.Max.X >= b2.Min.X && b1.Min.X <= b2.Max.X
         let y = b1.Max.Y >= b2.Min.Y && b1.Min.Y <= b2.Max.Y
         let z = b1.Max.Z >= b2.Min.Z && b1.Min.Z <= b2.Max.Z
         x && y && z
 
+    /// Returns true if the point is inside the bounding box.
     let inside (b : BBox) (p : Point) =
         p.X >= b.Min.X && p.X <= b.Max.X &&
         p.Y >= b.Min.Y && p.Y <= b.Max.Y &&
         p.Z >= b.Min.Z && p.Z <= b.Max.Z
 
+    /// Creates a new bounding box padded by the given amount.
     let expand (b : BBox) delta =
         BBox(b.Min - Vector(delta, delta, delta),
              b.Max + Vector(delta, delta, delta))
 
+    /// Returns the diagonal distance between the min and max.
     let diag (b : BBox) =
         b.Max - b.Min
 
+    /// Returns the surface area of the bounding box faces.
     let surfaceArea b =
         let d = diag b
         2.0f * (d.X * d.Y + d.X * d.Z + d.Y * d.Z)
 
+    /// Returns the volume inside the bounding box.
     let volume b =
         let d = diag b
         d.X * d.Y * d.Z
 
+    /// Returns the largest axis (X=0, Y=1, Z=2) of the bounding box.
     let maximumExtent b =
         let d = diag b
         if d.X > d.Y && d.X > d.Z then 0
         else if d.Y > d.Z then 1
         else 2
 
+    /// Returns the center and radius of a sphere that bounds the given bounding box.
     let boundingSphere (b : BBox) =
         let center = 0.5f * b.Min + 0.5f * b.Max
         let radius = if inside b center then Point.distance center b.Max else 0.0f
         (center, radius)
 
+    /// Tests for intersection of the given ray with the given bounding box.
     let tryIntersect (b : BBox) (ray : RaySegment) =
         let t0 = ref ray.MinT
         let t1 = ref ray.MaxT
@@ -323,12 +387,12 @@ module BBox =
 
             t0 <= t1
 
-        let falseResult = (false, None, None)
+        let falseResult = (None, None)
 
         if not (testDimension 0) then falseResult
         else if not (testDimension 1) then falseResult
         else if not (testDimension 2) then falseResult
-        else (true, Some(!t0), Some(!t1))
+        else (Some(!t0), Some(!t1))
 
 
         

@@ -1,31 +1,26 @@
-﻿module Aether.Tests.SamplingTests
+﻿namespace ``Sampling - Regular sampler``
+    open Xunit
+    open FsUnit.Xunit
+    open Nexus
+    open Aether.Sampling
 
-open NUnit.Framework
-open Nexus
-open Aether.Sampling
-
-
-module public RegularSamplerTests =
-
-    [<Test>] 
-    let ``GetNextSample() returns correct samples``() =
-        // Arrange.
+    type ``Given a regular sampler with a width and height of 2`` () =
         let sampler = RegularSampler(IntPoint2D(0, 0), IntPoint2D(2, 2))
-    
-        // Act.
-        let samples = sampler.GetSamples() |> Seq.toList
 
-        // Assert.
-        Assert.That(samples, Has.Length.EqualTo(4))
+        [<Fact>] 
+        let ``when GetNextSample() is called, it returns 4 samples``() =
+            let samples = sampler.GetSamples() |> Seq.toList
 
-        Assert.That(samples.[0].ImageX, Is.EqualTo(0))
-        Assert.That(samples.[0].ImageY, Is.EqualTo(0))
+            samples.Length |> should equal 4
 
-        Assert.That(samples.[1].ImageX, Is.EqualTo(1))
-        Assert.That(samples.[1].ImageY, Is.EqualTo(0))
+            samples.[0].ImageX |> should equal 0
+            samples.[0].ImageY |> should equal 0
 
-        Assert.That(samples.[2].ImageX, Is.EqualTo(0))
-        Assert.That(samples.[2].ImageY, Is.EqualTo(1))
+            samples.[1].ImageX |> should equal 1
+            samples.[1].ImageY |> should equal 0
 
-        Assert.That(samples.[3].ImageX, Is.EqualTo(1))
-        Assert.That(samples.[3].ImageY, Is.EqualTo(1))
+            samples.[2].ImageX |> should equal 0
+            samples.[2].ImageY |> should equal 1
+
+            samples.[3].ImageX |> should equal 1
+            samples.[3].ImageY |> should equal 1

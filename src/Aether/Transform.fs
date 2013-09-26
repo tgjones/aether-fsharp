@@ -239,7 +239,7 @@ module Transform =
         let camToWorld = Matrix4x4(m)
         Transform(Matrix4x4.inverse camToWorld, camToWorld)
 
-    let applyp (p : Point) (t : Transform) =
+    let transformPoint (p : Point) (t : Transform) =
         let x = p.X
         let y = p.Y
         let z = p.Z
@@ -250,18 +250,18 @@ module Transform =
         if wp = 1.0f then Point(xp, yp, zp)
         else Point(xp, yp, zp) / wp
 
-    let applybbox (b : BBox) (transform : Transform) =
-        let mutable ret = BBox.fromPoint(applyp (Point(b.Min.X, b.Min.Y, b.Min.Z)) transform)
-        ret <- BBox.unionBoxPoint ret   (applyp (Point(b.Max.X, b.Min.Y, b.Min.Z)) transform)
-        ret <- BBox.unionBoxPoint ret   (applyp (Point(b.Min.X, b.Max.Y, b.Min.Z)) transform)
-        ret <- BBox.unionBoxPoint ret   (applyp (Point(b.Min.X, b.Min.Y, b.Max.Z)) transform)
-        ret <- BBox.unionBoxPoint ret   (applyp (Point(b.Min.X, b.Max.Y, b.Max.Z)) transform)
-        ret <- BBox.unionBoxPoint ret   (applyp (Point(b.Max.X, b.Max.Y, b.Min.Z)) transform)
-        ret <- BBox.unionBoxPoint ret   (applyp (Point(b.Max.X, b.Min.Y, b.Max.Z)) transform)
-        ret <- BBox.unionBoxPoint ret   (applyp (Point(b.Max.X, b.Max.Y, b.Max.Z)) transform)
+    let transformBBox (b : BBox) (transform : Transform) =
+        let mutable ret = BBox.fromPoint(transformPoint (Point(b.Min.X, b.Min.Y, b.Min.Z)) transform)
+        ret <- BBox.unionBoxPoint ret   (transformPoint (Point(b.Max.X, b.Min.Y, b.Min.Z)) transform)
+        ret <- BBox.unionBoxPoint ret   (transformPoint (Point(b.Min.X, b.Max.Y, b.Min.Z)) transform)
+        ret <- BBox.unionBoxPoint ret   (transformPoint (Point(b.Min.X, b.Min.Y, b.Max.Z)) transform)
+        ret <- BBox.unionBoxPoint ret   (transformPoint (Point(b.Min.X, b.Max.Y, b.Max.Z)) transform)
+        ret <- BBox.unionBoxPoint ret   (transformPoint (Point(b.Max.X, b.Max.Y, b.Min.Z)) transform)
+        ret <- BBox.unionBoxPoint ret   (transformPoint (Point(b.Max.X, b.Min.Y, b.Max.Z)) transform)
+        ret <- BBox.unionBoxPoint ret   (transformPoint (Point(b.Max.X, b.Max.Y, b.Max.Z)) transform)
         ret
 
-    let applyv (p : Vector) (t : Transform) =
+    let transformVector (p : Vector) (t : Transform) =
         let x = p.X
         let y = p.Y
         let z = p.Z
@@ -269,7 +269,7 @@ module Transform =
                t.Matrix.[1,0]*x + t.Matrix.[1,1]*y + t.Matrix.[1,2]*z,
                t.Matrix.[2,0]*x + t.Matrix.[2,1]*y + t.Matrix.[2,2]*z)
 
-    let applyn (p : Normal) (t : Transform) =
+    let transformNormal (p : Normal) (t : Transform) =
         let x = p.X
         let y = p.Y
         let z = p.Z
@@ -278,7 +278,7 @@ module Transform =
                t.MatrixInverse.[0,2]*x + t.MatrixInverse.[1,2]*y + t.MatrixInverse.[2,2]*z)
 
     let applyr (r : RaySegment) (t : Transform) =
-        RaySegment(t |> applyp r.Origin, t |> applyv r.Direction,
+        RaySegment(t |> transformPoint r.Origin, t |> transformVector r.Direction,
                    r.MinT, r.MaxT, r.Time)
 
     let swapsHandedness (t : Transform) =
@@ -309,9 +309,9 @@ module Transform =
         (scale invTanAng invTanAng 1.0f) * Transform(persp)
 
     let hasScale (t : Transform) =
-        let la2 = t |> applyv (Vector(1.0f, 0.0f, 0.0f)) |> Vector.lengthSq
-        let lb2 = t |> applyv (Vector(0.0f, 1.0f, 0.0f)) |> Vector.lengthSq
-        let lc2 = t |> applyv (Vector(0.0f, 0.0f, 1.0f)) |> Vector.lengthSq
+        let la2 = t |> transformVector (Vector(1.0f, 0.0f, 0.0f)) |> Vector.lengthSq
+        let lb2 = t |> transformVector (Vector(0.0f, 1.0f, 0.0f)) |> Vector.lengthSq
+        let lc2 = t |> transformVector (Vector(0.0f, 0.0f, 1.0f)) |> Vector.lengthSq
         let notOne x = x < 0.999f || x > 1.001f
         notOne la2 || notOne lb2 || notOne lc2
 
@@ -320,3 +320,14 @@ module Transform =
 
     let transpose (t : Transform) =
         Transform(Matrix4x4.transpose t.Matrix, Matrix4x4.transpose t.MatrixInverse)
+
+
+[<AutoOpen>]
+module CustomOperators =
+    let inline (|>>) (transform : Transform) (value : ^a) : 'a =
+        match box value with
+        | :? Vector as v -> unbox<'a> (Transform.transformVector v transform)
+        | :? Point as p  -> unbox<'a> (Transform.transformPoint p transform)
+        | :? Normal as n -> unbox<'a> (Transform.transformNormal n transform)
+        | :? BBox as b   -> unbox<'a> (Transform.transformBBox b transform)
+        | _ -> failwith "Can't transform this type"

@@ -50,13 +50,24 @@
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <ItemGroup>
     <None Include="packages.config" />
+    <Compile Include="MathTests.fs" />
+    <Compile Include="GeometryTests.fs" />
     <Compile Include="ShapesTests.fs" />
     <Compile Include="FiltersTests.fs" />
     <Compile Include="SamplingTests.fs" />
     <Compile Include="ParsingTests.fs" />
+    <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="FsUnit.CustomMatchers">
+      <HintPath>..\packages\FsUnit.xUnit.1.2.1.2\Lib\Net40\FsUnit.CustomMatchers.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="FsUnit.Xunit">
+      <HintPath>..\packages\FsUnit.xUnit.1.2.1.2\Lib\Net40\FsUnit.Xunit.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
@@ -64,13 +75,21 @@
       <HintPath>..\packages\Nexus.2.1.0\lib\net40\Nexus.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="nunit.framework">
-      <HintPath>..\packages\NUnit.2.6.2\lib\nunit.framework.dll</HintPath>
+    <Reference Include="NHamcrest">
+      <HintPath>..\packages\FsUnit.xUnit.1.2.1.2\Lib\Net40\NHamcrest.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
+    <Reference Include="xunit">
+      <HintPath>..\packages\xunit.1.9.1\lib\net20\xunit.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="xunit.extensions">
+      <HintPath>..\packages\xunit.extensions.1.9.1\lib\net20\xunit.extensions.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Aether\Aether.fsproj">

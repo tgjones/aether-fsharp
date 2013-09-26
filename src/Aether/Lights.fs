@@ -47,7 +47,7 @@ type Light(lightToWorld : Transform) =
 type PointLight(lightToWorld, intensity : Spectrum) =
     inherit Light(lightToWorld)
 
-    let position = lightToWorld |> Transform.applyp Point.zero
+    let position = lightToWorld |>> Point.zero
 
     override this.Evaluate point epsilon time =
         let vectorToLight = position - point
@@ -60,7 +60,7 @@ type PointLight(lightToWorld, intensity : Spectrum) =
 type DistantLight(lightToWorld, radiance, direction) =
     inherit Light(lightToWorld)
 
-    let direction = lightToWorld |> Transform.applyv direction |> Vector.normalize
+    let direction = lightToWorld |>> direction |> Vector.normalize
 
     override this.Evaluate point epsilon time =
         let visibilityTester = VisibilityTester.initPointVector point epsilon direction time

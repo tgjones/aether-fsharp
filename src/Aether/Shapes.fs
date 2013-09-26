@@ -30,7 +30,7 @@ and [<AbstractClass>] Shape(objectToWorld, reverseOrientation) =
 
     abstract WorldSpaceBounds: BBox
     default this.WorldSpaceBounds = 
-        objectToWorld |> Transform.applybbox this.ObjectSpaceBounds
+        objectToWorld |>> this.ObjectSpaceBounds
 
     member this.ObjectToWorld = objectToWorld
     member this.WorldToObject = worldToObject
@@ -102,7 +102,7 @@ type Sphere(objectToWorld, reverseOrientation, radius) =
         let mutable t0 = 0.0f
         let mutable t1 = 0.0f
         match quadratic a b c with
-        | (true, Some(t0), Some(t1)) ->
+        | (Some(t0), Some(t1)) ->
             // Compute intersection distance along ray.
             if t0 > transformedRay.MaxT || t1 < transformedRay.MinT then
                 defaultOutput
@@ -159,11 +159,11 @@ type Sphere(objectToWorld, reverseOrientation, radius) =
                     let dnDv = (g * F - f * G) * invEGF2 * dpDu + (f * F - g * E) * invEGF2 * dpDv
 
                     // Initialize differenterial geometry from parametric information.
-                    let dg = DifferentialGeometry(this.ObjectToWorld |> Transform.applyp pHit, 
-                                                  this.ObjectToWorld |> Transform.applyv dpDu,
-                                                  this.ObjectToWorld |> Transform.applyv dpDv, 
-                                                  this.ObjectToWorld |> Transform.applyv dnDu, 
-                                                  this.ObjectToWorld |> Transform.applyv dnDv,
+                    let dg = DifferentialGeometry(this.ObjectToWorld |>> pHit, 
+                                                  this.ObjectToWorld |>> dpDu,
+                                                  this.ObjectToWorld |>> dpDv, 
+                                                  this.ObjectToWorld |>> dnDu, 
+                                                  this.ObjectToWorld |>> dnDv,
                                                   u, v, this)
 
                     let tHit = tHitTemp
@@ -191,7 +191,7 @@ type TriangleMesh(objectToWorld, reverseOrientation, numTriangles, numVertices,
     inherit RefinableShape(objectToWorld, reverseOrientation)
 
     // Transform mesh vertices to world space.
-    let worldSpacePoints = points |> List.map (fun x -> objectToWorld |> Transform.applyp x)
+    let worldSpacePoints = points |> List.map (fun x -> objectToWorld |>> x)
 
     let objectSpaceBounds = BBox.fromPointList points
     let worldSpaceBounds = BBox.fromPointList worldSpacePoints
@@ -231,9 +231,9 @@ and Triangle(objectToWorld, reverseOrientation, mesh : TriangleMesh, n) =
               Point2D(1.0f, 1.0f) ]
 
     override this.ObjectSpaceBounds =
-        BBox.fromPointList [ this.WorldToObject |> Transform.applyp p1
-                             this.WorldToObject |> Transform.applyp p2
-                             this.WorldToObject |> Transform.applyp p3 ]
+        BBox.fromPointList [ this.WorldToObject |>> p1
+                             this.WorldToObject |>> p2
+                             this.WorldToObject |>> p3 ]
 
     override this.WorldSpaceBounds =
         BBox.fromPointList [ p1; p2; p3 ]
