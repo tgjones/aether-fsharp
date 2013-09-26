@@ -51,6 +51,7 @@
   <ItemGroup>
     <None Include="packages.config" />
     <Compile Include="MathTests.fs" />
+    <Compile Include="SpectrumTests.fs" />
     <Compile Include="GeometryTests.fs" />
     <Compile Include="ShapesTests.fs" />
     <Compile Include="FiltersTests.fs" />

@@ -51,6 +51,7 @@
   <ItemGroup>
     <None Include="packages.config" />
     <Compile Include="Math.fs" />
+    <Compile Include="Spectrum.fs" />
     <Compile Include="Geometry.fs" />
     <Compile Include="Transform.fs" />
     <Compile Include="MonteCarlo.fs" />
