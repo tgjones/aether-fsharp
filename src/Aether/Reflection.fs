@@ -54,8 +54,8 @@ type OrenNayar(reflectance, sigma) =
 type Bsdf(dg : DifferentialGeometry, geometricNormal) =
     let bxdfs = List<Bxdf>()
     let nn = dg.Normal
-    let sn = dg.DpDu |> Vector.normalize
-    let tn = cross nn sn
+    let sn = dg.DpDu |> Vector.Normalize
+    let tn = Normal.Cross(nn, sn)
 
     member this.DifferentialGeometry = dg
 
@@ -69,9 +69,9 @@ type Bsdf(dg : DifferentialGeometry, geometricNormal) =
         let flags = defaultArg flags0 BxdfType.All
 
         let worldToLocal (v : Vector) =
-            Vector(dot v sn, 
-                   dot v tn, 
-                   dot v nn)
+            Vector(Vector.Dot(v, sn), 
+                   Vector.Dot(v, tn), 
+                   Vector.Dot(v, nn))
 
         let outgoing = worldToLocal(outgoingWorld)
         let incoming = worldToLocal(incomingWorld)

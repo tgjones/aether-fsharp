@@ -11,38 +11,28 @@ type Matrix4x4(values : single[,]) =
     member m.Item
         with get (i,j) = values.[i,j]
 
-    override this.Equals(other) =
-        match other with
-        | :? Matrix4x4 as m2 -> values = m2.Values
-        | _ -> false
-
-
-[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
-[<RequireQualifiedAccess>]
-module Matrix4x4 =
-
-    let initValues (t00 : single) (t01 : single) (t02 : single) (t03 : single)
-                   (t10 : single) (t11 : single) (t12 : single) (t13 : single)
-                   (t20 : single) (t21 : single) (t22 : single) (t23 : single)
-                   (t30 : single) (t31 : single) (t32 : single) (t33 : single) =
+    static member FromValues (t00 : single) (t01 : single) (t02 : single) (t03 : single)
+                             (t10 : single) (t11 : single) (t12 : single) (t13 : single)
+                             (t20 : single) (t21 : single) (t22 : single) (t23 : single)
+                             (t30 : single) (t31 : single) (t32 : single) (t33 : single) =
         let values = array2D [ [ t00; t01; t02; t03 ]
                                [ t10; t11; t12; t13 ]
                                [ t20; t21; t22; t23 ]
                                [ t30; t31; t32; t33 ] ]
         Matrix4x4(values)
 
-    let identity = initValues 1.0f 0.0f 0.0f 0.0f
-                              0.0f 1.0f 0.0f 0.0f
-                              0.0f 0.0f 1.0f 0.0f
-                              0.0f 0.0f 0.0f 1.0f
+    static member Identity = Matrix4x4.FromValues 1.0f 0.0f 0.0f 0.0f
+                                                  0.0f 1.0f 0.0f 0.0f
+                                                  0.0f 0.0f 1.0f 0.0f
+                                                  0.0f 0.0f 0.0f 1.0f
 
-    let transpose (m : Matrix4x4) =
-        initValues m.[0, 0] m.[1, 0] m.[2, 0] m.[3, 0]
-                   m.[0, 1] m.[1, 1] m.[2, 1] m.[3, 1]
-                   m.[0, 2] m.[1, 2] m.[2, 3] m.[3, 2]
-                   m.[0, 3] m.[1, 3] m.[2, 3] m.[3, 3]
+    static member Transpose (m : Matrix4x4) =
+        Matrix4x4.FromValues m.[0, 0] m.[1, 0] m.[2, 0] m.[3, 0]
+                             m.[0, 1] m.[1, 1] m.[2, 1] m.[3, 1]
+                             m.[0, 2] m.[1, 2] m.[2, 3] m.[3, 2]
+                             m.[0, 3] m.[1, 3] m.[2, 3] m.[3, 3]
 
-    let mul (m1 : Matrix4x4) (m2 : Matrix4x4) =
+    static member Mul (m1 : Matrix4x4) (m2 : Matrix4x4) =
         let values = Array2D.zeroCreate<single> 4 4
         for i in 0..3 do
             for j in 0..3 do
@@ -52,8 +42,7 @@ module Matrix4x4 =
                                 m1.[i,3] * m2.[3,j]
         Matrix4x4(values)
 
-    let inverse (m : Matrix4x4) =
-
+    static member Inverse (m : Matrix4x4) =
         let indxc = Array.zeroCreate<int> 4
         let indxr = Array.zeroCreate<int> 4
         let ipiv = [| 0; 0; 0; 0 |]
@@ -111,77 +100,78 @@ module Matrix4x4 =
 
         Matrix4x4(minv)
 
+    override this.Equals(other) =
+        match other with
+        | :? Matrix4x4 as m2 -> values = m2.Values
+        | _ -> false
+
+    override this.GetHashCode() =
+        values.GetHashCode()
+
 
 type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
     
-    new(matrix) = Transform(matrix, Matrix4x4.inverse matrix)
+    new(matrix) = Transform(matrix, Matrix4x4.Inverse matrix)
 
     member this.Matrix = matrix
     member this.MatrixInverse = matrixInverse
 
     static member (*) (t1 : Transform, t2 : Transform) =
-        let m1 = Matrix4x4.mul t1.Matrix t2.Matrix
-        let m2 = Matrix4x4.mul t2.MatrixInverse t1.MatrixInverse
+        let m1 = Matrix4x4.Mul t1.Matrix t2.Matrix
+        let m2 = Matrix4x4.Mul t2.MatrixInverse t1.MatrixInverse
         Transform(m1, m2)
 
-
-[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
-[<RequireQualifiedAccess>]
-module Transform =
-
-    [<CompiledName("Translate")>]
-    let translate (delta : Vector) =
-        let m = Matrix4x4.initValues 1.0f 0.0f 0.0f delta.X
+    static member Translate (delta : Vector) =
+        let m = Matrix4x4.FromValues 1.0f 0.0f 0.0f delta.X
                                      0.0f 1.0f 0.0f delta.Y
                                      0.0f 0.0f 1.0f delta.Z
                                      0.0f 0.0f 0.0f 1.0f
-        let minv = Matrix4x4.initValues 1.0f 0.0f 0.0f -delta.X
+        let minv = Matrix4x4.FromValues 1.0f 0.0f 0.0f -delta.X
                                         0.0f 1.0f 0.0f -delta.Y
                                         0.0f 0.0f 1.0f -delta.Z
                                         0.0f 0.0f 0.0f 1.0f
         Transform(m, minv)
 
-    [<CompiledName("Scale")>]
-    let scale x y z =
-        let m = Matrix4x4.initValues x    0.0f 0.0f 0.0f
+    static member Scale x y z =
+        let m = Matrix4x4.FromValues x    0.0f 0.0f 0.0f
                                      0.0f y    0.0f 0.0f
                                      0.0f 0.0f z    0.0f
                                      0.0f 0.0f 0.0f 1.0f
-        let minv = Matrix4x4.initValues (1.0f / x) 0.0f       0.0f       0.0f
+        let minv = Matrix4x4.FromValues (1.0f / x) 0.0f       0.0f       0.0f
                                         0.0f       (1.0f / y) 0.0f       0.0f
                                         0.0f       0.0f       (1.0f / z) 0.0f
                                         0.0f       0.0f       0.0f       1.0f
         Transform(m, minv)
 
-    let rotateX angle =
+    static member RotateX angle =
         let sinT = sin (toRadians angle)
         let cosT = cos (toRadians angle)
-        let m = Matrix4x4.initValues 1.0f 0.0f  0.0f 0.0f
+        let m = Matrix4x4.FromValues 1.0f 0.0f  0.0f 0.0f
                                      0.0f cosT -sinT 0.0f
                                      0.0f sinT  cosT 0.0f
                                      0.0f 0.0f  0.0f 1.0f
-        Transform(m, Matrix4x4.transpose m)
+        Transform(m, Matrix4x4.Transpose m)
 
-    let rotateY angle =
+    static member RotateY angle =
         let sinT = sin (toRadians angle)
         let cosT = cos (toRadians angle)
-        let m = Matrix4x4.initValues  cosT 0.0f sinT 0.0f
+        let m = Matrix4x4.FromValues  cosT 0.0f sinT 0.0f
                                       0.0f 1.0f 0.0f 0.0f
                                      -sinT 0.0f cosT 0.0f
                                       0.0f 0.0f 0.0f 1.0f
-        Transform(m, Matrix4x4.transpose m)
+        Transform(m, Matrix4x4.Transpose m)
 
-    let rotateZ angle =
+    static member RotateZ angle =
         let sinT = sin (toRadians angle)
         let cosT = cos (toRadians angle)
-        let m = Matrix4x4.initValues cosT -sinT 0.0f 0.0f
+        let m = Matrix4x4.FromValues cosT -sinT 0.0f 0.0f
                                      sinT  cosT 0.0f 0.0f
                                      0.0f  0.0f 1.0f 0.0f
                                      0.0f  0.0f 0.0f 1.0f
-        Transform(m, Matrix4x4.transpose m)
+        Transform(m, Matrix4x4.Transpose m)
 
-    let rotate angle (axis : Vector) =
-        let a = Vector.normalize axis
+    static member Rotate angle (axis : Vector) =
+        let a = Vector.Normalize axis
         let s = sin (toRadians angle)
         let c = cos (toRadians angle)
         let m = Array2D.zeroCreate 4 4
@@ -207,10 +197,9 @@ module Transform =
         m.[3,3] <- 1.0f
 
         let mat = Matrix4x4(m)
-        Transform(mat, Matrix4x4.transpose mat)
+        Transform(mat, Matrix4x4.Transpose mat)
 
-    [<CompiledName("LookAt")>]
-    let lookAt (pos : Point) (look : Point) (up : Vector) =
+    static member LookAt (pos : Point) (look : Point) (up : Vector) =
         let m = Array2D.zeroCreate 4 4
 
         // Initialize fourth column of viewing matrix.
@@ -220,9 +209,9 @@ module Transform =
         m.[3,3] <- 1.0f
 
         // Initialize first three columns of viewing matrix.
-        let dir = Vector.normalize (look - pos)
-        let left = Vector.normalize (cross (Vector.normalize up) dir)
-        let newUp = cross dir left
+        let dir = (look - pos) |> Vector.Normalize
+        let left = Vector.Cross(Vector.Normalize(up), dir) |> Vector.Normalize
+        let newUp = Vector.Cross(dir, left)
         m.[0,0] <- left.X
         m.[1,0] <- left.Y
         m.[2,0] <- left.Z
@@ -237,97 +226,92 @@ module Transform =
         m.[3,2] <- 0.0f
 
         let camToWorld = Matrix4x4(m)
-        Transform(Matrix4x4.inverse camToWorld, camToWorld)
+        Transform(Matrix4x4.Inverse camToWorld, camToWorld)
 
-    let transformPoint (p : Point) (t : Transform) =
+    member this.Transform(p : Point) =
         let x = p.X
         let y = p.Y
         let z = p.Z
-        let xp = t.Matrix.[0,0]*x + t.Matrix.[0,1]*y + t.Matrix.[0,2]*z + t.Matrix.[0,3]
-        let yp = t.Matrix.[1,0]*x + t.Matrix.[1,1]*y + t.Matrix.[1,2]*z + t.Matrix.[1,3]
-        let zp = t.Matrix.[2,0]*x + t.Matrix.[2,1]*y + t.Matrix.[2,2]*z + t.Matrix.[2,3]
-        let wp = t.Matrix.[3,0]*x + t.Matrix.[3,1]*y + t.Matrix.[3,2]*z + t.Matrix.[3,3]
+        let xp = matrix.[0,0]*x + matrix.[0,1]*y + matrix.[0,2]*z + matrix.[0,3]
+        let yp = matrix.[1,0]*x + matrix.[1,1]*y + matrix.[1,2]*z + matrix.[1,3]
+        let zp = matrix.[2,0]*x + matrix.[2,1]*y + matrix.[2,2]*z + matrix.[2,3]
+        let wp = matrix.[3,0]*x + matrix.[3,1]*y + matrix.[3,2]*z + matrix.[3,3]
         if wp = 1.0f then Point(xp, yp, zp)
         else Point(xp, yp, zp) / wp
 
-    let transformBBox (b : BBox) (transform : Transform) =
-        let mutable ret = BBox.fromPoint(transformPoint (Point(b.Min.X, b.Min.Y, b.Min.Z)) transform)
-        ret <- BBox.unionBoxPoint ret   (transformPoint (Point(b.Max.X, b.Min.Y, b.Min.Z)) transform)
-        ret <- BBox.unionBoxPoint ret   (transformPoint (Point(b.Min.X, b.Max.Y, b.Min.Z)) transform)
-        ret <- BBox.unionBoxPoint ret   (transformPoint (Point(b.Min.X, b.Min.Y, b.Max.Z)) transform)
-        ret <- BBox.unionBoxPoint ret   (transformPoint (Point(b.Min.X, b.Max.Y, b.Max.Z)) transform)
-        ret <- BBox.unionBoxPoint ret   (transformPoint (Point(b.Max.X, b.Max.Y, b.Min.Z)) transform)
-        ret <- BBox.unionBoxPoint ret   (transformPoint (Point(b.Max.X, b.Min.Y, b.Max.Z)) transform)
-        ret <- BBox.unionBoxPoint ret   (transformPoint (Point(b.Max.X, b.Max.Y, b.Max.Z)) transform)
+    member this.Transform(b : BBox) =
+        let mutable ret = BBox.FromPoint(this.Transform(Point(b.Min.X, b.Min.Y, b.Min.Z)))
+        ret <- BBox.Union(ret, this.Transform(Point(b.Max.X, b.Min.Y, b.Min.Z)))
+        ret <- BBox.Union(ret, this.Transform(Point(b.Min.X, b.Max.Y, b.Min.Z)))
+        ret <- BBox.Union(ret, this.Transform(Point(b.Min.X, b.Min.Y, b.Max.Z)))
+        ret <- BBox.Union(ret, this.Transform(Point(b.Min.X, b.Max.Y, b.Max.Z)))
+        ret <- BBox.Union(ret, this.Transform(Point(b.Max.X, b.Max.Y, b.Min.Z)))
+        ret <- BBox.Union(ret, this.Transform(Point(b.Max.X, b.Min.Y, b.Max.Z)))
+        ret <- BBox.Union(ret, this.Transform(Point(b.Max.X, b.Max.Y, b.Max.Z)))
         ret
 
-    let transformVector (p : Vector) (t : Transform) =
+    member this.Transform(p : Vector) =
         let x = p.X
         let y = p.Y
         let z = p.Z
-        Vector(t.Matrix.[0,0]*x + t.Matrix.[0,1]*y + t.Matrix.[0,2]*z,
-               t.Matrix.[1,0]*x + t.Matrix.[1,1]*y + t.Matrix.[1,2]*z,
-               t.Matrix.[2,0]*x + t.Matrix.[2,1]*y + t.Matrix.[2,2]*z)
+        Vector(matrix.[0,0]*x + matrix.[0,1]*y + matrix.[0,2]*z,
+               matrix.[1,0]*x + matrix.[1,1]*y + matrix.[1,2]*z,
+               matrix.[2,0]*x + matrix.[2,1]*y + matrix.[2,2]*z)
 
-    let transformNormal (p : Normal) (t : Transform) =
+    member this.Transform(p : Normal) =
         let x = p.X
         let y = p.Y
         let z = p.Z
-        Vector(t.MatrixInverse.[0,0]*x + t.MatrixInverse.[1,0]*y + t.MatrixInverse.[2,0]*z,
-               t.MatrixInverse.[0,1]*x + t.MatrixInverse.[1,1]*y + t.MatrixInverse.[2,1]*z,
-               t.MatrixInverse.[0,2]*x + t.MatrixInverse.[1,2]*y + t.MatrixInverse.[2,2]*z)
+        Vector(matrixInverse.[0,0]*x + matrixInverse.[1,0]*y + matrixInverse.[2,0]*z,
+               matrixInverse.[0,1]*x + matrixInverse.[1,1]*y + matrixInverse.[2,1]*z,
+               matrixInverse.[0,2]*x + matrixInverse.[1,2]*y + matrixInverse.[2,2]*z)
 
-    let applyr (r : RaySegment) (t : Transform) =
-        RaySegment(t |> transformPoint r.Origin, t |> transformVector r.Direction,
+    member this.Transform(r : RaySegment) =
+        RaySegment(this.Transform(r.Origin), this.Transform(r.Direction),
                    r.MinT, r.MaxT, r.Time)
 
-    let swapsHandedness (t : Transform) =
-        let det = ((t.Matrix.[0,0] *
-                    (t.Matrix.[1,1] * t.Matrix.[2,2] -
-                     t.Matrix.[1,2] * t.Matrix.[2,1])) -
-                   (t.Matrix.[0,1] *
-                    (t.Matrix.[1,0] * t.Matrix.[2,2] -
-                     t.Matrix.[1,2] * t.Matrix.[2,0])) +
-                   (t.Matrix.[0,2] *
-                    (t.Matrix.[1,0] * t.Matrix.[2,1] -
-                     t.Matrix.[1,1] * t.Matrix.[2,0])));
+    member this.SwapsHandedness() =
+        let det = ((matrix.[0,0] *
+                    (matrix.[1,1] * matrix.[2,2] -
+                     matrix.[1,2] * matrix.[2,1])) -
+                   (matrix.[0,1] *
+                    (matrix.[1,0] * matrix.[2,2] -
+                     matrix.[1,2] * matrix.[2,0])) +
+                   (matrix.[0,2] *
+                    (matrix.[1,0] * matrix.[2,1] -
+                     matrix.[1,1] * matrix.[2,0])));
         det < 0.0f
 
-    let orthographic zNear zFar =
-        (scale 1.0f 1.0f (1.0f / (zFar - zNear))) *
-        (translate (Vector(0.0f, 0.0f, -zNear)))
+    static member Orthographic zNear zFar =
+        (Transform.Scale 1.0f 1.0f (1.0f / (zFar - zNear))) *
+        (Transform.Translate (Vector(0.0f, 0.0f, -zNear)))
 
-    let perspective fov n f =
+    static member Perspective fov n f =
         // Perform perspective divide.
-        let persp = Matrix4x4.initValues 1.0f 0.0f          0.0f             0.0f
+        let persp = Matrix4x4.FromValues 1.0f 0.0f          0.0f             0.0f
                                          0.0f 1.0f          0.0f             0.0f
                                          0.0f 0.0f (f / (f - n)) (-f*n / (f - n))
                                          0.0f 0.0f          1.0f             0.0f
 
         // Scale to canonical viewing volume.
         let invTanAng = 1.0f / (tan ((toRadians fov) / 2.0f))
-        (scale invTanAng invTanAng 1.0f) * Transform(persp)
+        (Transform.Scale invTanAng invTanAng 1.0f) * Transform(persp)
 
-    let hasScale (t : Transform) =
-        let la2 = t |> transformVector (Vector(1.0f, 0.0f, 0.0f)) |> Vector.lengthSq
-        let lb2 = t |> transformVector (Vector(0.0f, 1.0f, 0.0f)) |> Vector.lengthSq
-        let lc2 = t |> transformVector (Vector(0.0f, 0.0f, 1.0f)) |> Vector.lengthSq
+    member this.HasScale() =
+        let la2 = (this.Transform(Vector(1.0f, 0.0f, 0.0f))).LengthSquared()
+        let lb2 = (this.Transform(Vector(0.0f, 1.0f, 0.0f))).LengthSquared()
+        let lc2 = (this.Transform(Vector(0.0f, 0.0f, 1.0f))).LengthSquared()
         let notOne x = x < 0.999f || x > 1.001f
         notOne la2 || notOne lb2 || notOne lc2
 
-    let inverse (t : Transform) =
+    static member Inverse (t : Transform) =
         Transform(t.MatrixInverse, t.Matrix)
 
-    let transpose (t : Transform) =
-        Transform(Matrix4x4.transpose t.Matrix, Matrix4x4.transpose t.MatrixInverse)
+    static member Transpose (t : Transform) =
+        Transform(Matrix4x4.Transpose t.Matrix, Matrix4x4.Transpose t.MatrixInverse)
 
 
 [<AutoOpen>]
 module CustomOperators =
-    let inline (|>>) (transform : Transform) (value : ^a) : 'a =
-        match box value with
-        | :? Vector as v -> unbox<'a> (Transform.transformVector v transform)
-        | :? Point as p  -> unbox<'a> (Transform.transformPoint p transform)
-        | :? Normal as n -> unbox<'a> (Transform.transformNormal n transform)
-        | :? BBox as b   -> unbox<'a> (Transform.transformBBox b transform)
-        | _ -> failwith "Can't transform this type"
+    let inline (|>>) (transform : ^a when ^a : (member Transform : ^b -> ^b)) (value : ^b) : 'b =
+        (^a : (member Transform : ^b -> ^b) transform, value)

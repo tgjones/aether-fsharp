@@ -7,7 +7,7 @@
     open Aether.Shapes
 
     type ``Given valid input data`` () =
-        let transform = Transform.translate (Vector(1.0f, 2.0f, 3.0f))
+        let transform = Transform.Translate (Vector(1.0f, 2.0f, 3.0f))
         let point = Point(1.0f, 2.0f, 3.0f)
         let normal = Normal(0.0f, 1.0f, 0.0f)
 
@@ -18,7 +18,7 @@
             plane.Normal |> should equal normal
 
     type ``Given a ray that hits the plane`` () =
-        let transform = Transform.translate Vector.zero
+        let transform = Transform.Translate Vector.Zero
         let plane = Plane(transform, false,
                           Point(0.0f, 0.0f, 0.0f), 
                           Normal(0.0f, 1.0f, 0.0f))
@@ -33,7 +33,7 @@
             tHit |> should equal 4.0f
 
     type ``Given a ray that misses the plane`` () =
-        let transform = Transform.translate Vector.zero
+        let transform = Transform.Translate Vector.Zero
         let plane = Plane(transform, false, 
                           Point(0.0f, 0.0f, 0.0f), 
                           Normal(0.0f, 1.0f, 0.0f))
@@ -55,7 +55,7 @@ namespace ``Shapes - Sphere shape``
     open Aether.Shapes
 
     type ``Given valid input data`` () =
-        let transform = Transform.translate (Vector(1.0f, 2.0f, 3.0f))
+        let transform = Transform.Translate (Vector(1.0f, 2.0f, 3.0f))
         let radius = 10.0f
 
         [<Fact>]
@@ -64,7 +64,7 @@ namespace ``Shapes - Sphere shape``
             sphere.Radius |> should equal radius
 
     type ``Given a ray that hits the sphere`` () =
-        let transform = Transform.translate (Vector(0.0f, 0.0f, 3.0f))
+        let transform = Transform.Translate (Vector(0.0f, 0.0f, 3.0f))
         let sphere = Sphere(transform, false, 10.0f) 
         let ray = RaySegment(Point(0.0f, 0.0f, 20.0f), 
                              Vector(0.0f, 1.0f, 0.0f),
@@ -77,7 +77,7 @@ namespace ``Shapes - Sphere shape``
             tHit |> should equal 7.0f
 
     type ``Given a ray that misses the sphere`` () =
-        let transform = Transform.translate (Vector(0.0f, 0.0f, 3.0f))
+        let transform = Transform.Translate (Vector(0.0f, 0.0f, 3.0f))
         let sphere = Sphere(transform, false, 10.0f) 
         let ray = RaySegment(Point(20.0f, 0.0f, 20.0f), 
                              Vector(0.0f, 1.0f, 0.0f),

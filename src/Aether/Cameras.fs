@@ -29,21 +29,21 @@ type ProjectiveCamera(cam2World, projection : Transform,
     let cameraToScreen = projection
 
     // Compute projective camera screen transformations.
-    let screenToRaster = (Transform.scale (single film.XRes) (single film.YRes) 1.0f) *
-                         (Transform.scale (1.0f / (screenWindow.[1] - screenWindow.[0]))
+    let screenToRaster = (Transform.Scale (single film.XRes) (single film.YRes) 1.0f) *
+                         (Transform.Scale (1.0f / (screenWindow.[1] - screenWindow.[0]))
                                           (1.0f / (screenWindow.[2] - screenWindow.[3]))
                                           1.0f) *
-                         (Transform.translate (Vector(-screenWindow.[0], -screenWindow.[3], 0.0f)))
-    let rasterToScreen = Transform.inverse screenToRaster
-    let rasterToCamera = (Transform.inverse cameraToScreen) * rasterToScreen
+                         (Transform.Translate (Vector(-screenWindow.[0], -screenWindow.[3], 0.0f)))
+    let rasterToScreen = Transform.Inverse screenToRaster
+    let rasterToCamera = (Transform.Inverse cameraToScreen) * rasterToScreen
 
     member this.LensRadius = lensRadius
     member this.RasterToCamera = rasterToCamera
 
 
-type OrthographicCamera(cam2World, screenWindow, shutterOpen, shutterClose,
+type OrthographicCamera(cam2World : Transform, screenWindow, shutterOpen, shutterClose,
                         lensRadius, focalDistance, film) =
-    inherit ProjectiveCamera(cam2World, Transform.orthographic 0.0f 1.0f,
+    inherit ProjectiveCamera(cam2World, Transform.Orthographic 0.0f 1.0f,
                              screenWindow, shutterOpen, shutterClose,
                              lensRadius, focalDistance, film)
 
@@ -59,13 +59,13 @@ type OrthographicCamera(cam2World, screenWindow, shutterOpen, shutterClose,
 //            let lensU, lensV = concentricSampleDisk sample.LensU
 
 //        let ray' = RaySegment.withTime sample.Time ray
-        let ray' = cam2World |> Transform.applyr ray
+        let ray' = cam2World |>> ray
         ray'
 
 
-type PerspectiveCamera(cam2World, screenWindow, shutterOpen, shutterClose,
+type PerspectiveCamera(cam2World : Transform, screenWindow, shutterOpen, shutterClose,
                        lensRadius, focalDistance, fieldOfView, film) =
-    inherit ProjectiveCamera(cam2World, Transform.perspective fieldOfView 1e-2f 1000.0f,
+    inherit ProjectiveCamera(cam2World, Transform.Perspective fieldOfView 1e-2f 1000.0f,
                              screenWindow, shutterOpen, shutterClose, lensRadius,
                              focalDistance, film)
 
@@ -73,14 +73,14 @@ type PerspectiveCamera(cam2World, screenWindow, shutterOpen, shutterClose,
         // Generate raster and camera samples.
         let rasterPoint = Point(single(sample.ImageX), single(sample.ImageY), 0.0f)
         let cameraPoint = this.RasterToCamera |>> rasterPoint
-        let ray = RaySegment(Point.zero, cameraPoint |> Point.toVector |> Vector.normalize,
+        let ray = RaySegment(Point.Zero, cameraPoint |> Point.ToVector |> Vector.Normalize,
                              0.0f, infinityf)
         // TODO: Modify ray for depth of field.
-        let ray' = cam2World |> Transform.applyr ray
+        let ray' = cam2World |>> ray
         ray'
 
 
-type EnvironmentCamera(cam2World, shutterOpen, shutterClose, film) =
+type EnvironmentCamera(cam2World : Transform, shutterOpen, shutterClose, film) =
     inherit Camera(cam2World, shutterOpen, shutterClose, film)
 
     override this.GenerateRay sample =
@@ -90,6 +90,6 @@ type EnvironmentCamera(cam2World, shutterOpen, shutterClose, film) =
         let dir = Vector(sin theta * cos phi,
                          cos theta,
                          sin theta * sin phi)
-        let ray = RaySegment(Point.zero, dir, 0.0f, infinityf) // sample.Time
-        let ray' = cam2World |> Transform.applyr ray
+        let ray = RaySegment(Point.Zero, dir, 0.0f, infinityf) // sample.Time
+        let ray' = cam2World |>> ray
         ray'

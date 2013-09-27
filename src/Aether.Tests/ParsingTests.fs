@@ -82,7 +82,7 @@ type ``Given a full scene file`` () =
             Ast.AttributeBegin
 
             Ast.CoordSysTransform("camera")
-            Ast.StandardDirective(StandardDirectiveType.LightSource, "distant", Some([ ("from", PointValue(Point.zero)); ("to", PointValue(Point(0.0f, 0.0f, 1.0f))); ("L", SpectrumValue(RgbSpectrum([| 3.0f; 3.0f; 3.0f |]))) ]))
+            Ast.StandardDirective(StandardDirectiveType.LightSource, "distant", Some([ ("from", PointValue(Point.Zero)); ("to", PointValue(Point(0.0f, 0.0f, 1.0f))); ("L", SpectrumValue(RgbSpectrum([| 3.0f; 3.0f; 3.0f |]))) ]))
 
             Ast.AttributeEnd
 

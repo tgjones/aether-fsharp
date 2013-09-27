@@ -7,7 +7,7 @@ open Aether.Transforms
 
 type DifferentialGeometry(point, dpdu : Vector, dpdv : Vector,
                           dndu, dndv, u, v, shape : Shape) =
-    let normal = cross dpdu dpdv |> Vector.normalize |> Vector.toNormal
+    let normal = Vector.Cross(dpdu, dpdv) |> Vector.Normalize |> Vector.ToNormal
     let normal' = if shape.ReverseOrientation <> shape.TransformSwapsHandedness then normal * -1.0f else normal
 
     member this.Point = point
@@ -18,10 +18,10 @@ type DifferentialGeometry(point, dpdu : Vector, dpdv : Vector,
         () // TODO
 
 
-and [<AbstractClass>] Shape(objectToWorld, reverseOrientation) =
+and [<AbstractClass>] Shape(objectToWorld : Transform, reverseOrientation) =
 
-    let worldToObject = Transform.inverse objectToWorld
-    let transformSwapsHandedness = Transform.swapsHandedness objectToWorld
+    let worldToObject = Transform.Inverse objectToWorld
+    let transformSwapsHandedness = objectToWorld.SwapsHandedness()
 
     abstract ObjectSpaceBounds: BBox
 
@@ -79,21 +79,21 @@ type Sphere(objectToWorld, reverseOrientation, radius) =
     member this.Radius = radius
 
     override this.ObjectSpaceBounds =
-        BBox.fromPoints (Point(-radius, -radius, -radius))
-                        (Point(radius, radius, radius))
+        BBox.FromPoints(Point(-radius, -radius, -radius),
+                        Point(radius, radius, radius))
 
     override this.TryIntersect ray =
         // Initialize output.
         let defaultOutput = (false, nanf, nanf, None)
 
         // Transform ray to object space.
-        let transformedRay = this.WorldToObject |> Transform.applyr ray
+        let transformedRay = this.WorldToObject |>> ray
 
         // Compute quadratic sphre coefficients.
-        let origin = transformedRay.Origin |> Point.toVector
-        let a = transformedRay.Direction |> Vector.lengthSq
-        let b = 2.0f * (dot origin transformedRay.Direction)
-        let c = (dot origin origin) - (radius * radius)
+        let origin = transformedRay.Origin |> Point.ToVector
+        let a = transformedRay.Direction.LengthSquared()
+        let b = 2.0f * Vector.Dot(origin, transformedRay.Direction)
+        let c = Vector.Dot(origin, origin) - (radius * radius)
 
         // Solve quadratic equation
         let mutable t0 = 0.0f
@@ -106,7 +106,7 @@ type Sphere(objectToWorld, reverseOrientation, radius) =
             else
                 let intersect tHitTemp =
                     // Compute sphere hit position and phi
-                    let pHit = transformedRay |> RaySegment.evaluate tHitTemp
+                    let pHit = transformedRay.Evaluate tHitTemp
                     let mutable phi = atan2 pHit.Y pHit.X
                     if phi < 0.0f then
                         phi <- phi + pi * 2.0f
@@ -119,15 +119,15 @@ type Sphere(objectToWorld, reverseOrientation, radius) =
                     // Compute sphere dpdu and dpdv.
                     let mutable cosPhi = 0.0f
                     let mutable sinPhi = 0.0f
-                    let mutable dpDu = Vector.zero
-                    let mutable dpDv = Vector.zero
+                    let mutable dpDu = Vector.Zero
+                    let mutable dpDv = Vector.Zero
                     let zRadius = sqrt (pHit.X * pHit.X + pHit.Y * pHit.Y)
                     if zRadius = 0.0f then
                         // Handle hit at degenerate parameterization point.
                         cosPhi <- 0.0f
                         sinPhi <- 1.0f
                         dpDv <- (thetaMax - thetaMin) * Vector(pHit.Z * cosPhi, pHit.Z * sinPhi, -radius * (sin theta))
-                        dpDu <- cross dpDv (Point.toVector pHit)
+                        dpDu <- Vector.Cross(dpDv, pHit.ToVector())
                     else
                         let inverseZRadius = 1.0f / zRadius
                         cosPhi <- pHit.X * inverseZRadius
@@ -139,16 +139,16 @@ type Sphere(objectToWorld, reverseOrientation, radius) =
                     // Compute sphere dndu and dndv.
                     let d2Pduu = -phiMax * phiMax * Vector(pHit.X, pHit.Y, 0.0f)
                     let d2Pduv = (thetaMax - thetaMin) * pHit.Z * phiMax * Vector(-sinPhi, cosPhi, 0.0f)
-                    let d2Pdvv = -(thetaMax - thetaMin) * (thetaMax - thetaMin) * (Point.toVector pHit)
+                    let d2Pdvv = -(thetaMax - thetaMin) * (thetaMax - thetaMin) * pHit.ToVector()
 
                     // Compute coefficients for fundamental forms.
-                    let E = dot dpDu dpDu
-                    let F = dot dpDu dpDv
-                    let G = dot dpDv dpDv
-                    let n = cross dpDu dpDv |> Vector.normalize
-                    let e = dot n d2Pduu
-                    let f = dot n d2Pduv
-                    let g = dot n d2Pdvv
+                    let E = Vector.Dot(dpDu, dpDu)
+                    let F = Vector.Dot(dpDu, dpDv)
+                    let G = Vector.Dot(dpDv, dpDv)
+                    let n = Vector.Cross(dpDu, dpDv) |> Vector.Normalize
+                    let e = Vector.Dot(n, d2Pduu)
+                    let f = Vector.Dot(n, d2Pduv)
+                    let g = Vector.Dot(n, d2Pdvv)
 
                     // Compute dndu and dndv from fundamental form coefficients.
                     let invEGF2 = 1.0f / (E * G - F * F)
@@ -182,7 +182,7 @@ type Sphere(objectToWorld, reverseOrientation, radius) =
 type TextureCoordinate = { X : single; Y : single }
 
 
-type TriangleMesh(objectToWorld, reverseOrientation, numTriangles, numVertices, 
+type TriangleMesh(objectToWorld : Transform, reverseOrientation, numTriangles, numVertices, 
                   vertexIndices : int[],
                   points : Point list,
                   normals : Normal list,
@@ -193,8 +193,8 @@ type TriangleMesh(objectToWorld, reverseOrientation, numTriangles, numVertices,
     // Transform mesh vertices to world space.
     let worldSpacePoints = points |> List.map (fun x -> objectToWorld |>> x)
 
-    let objectSpaceBounds = BBox.fromPointList points
-    let worldSpaceBounds = BBox.fromPointList worldSpacePoints
+    let objectSpaceBounds = BBox.FromPoints(points)
+    let worldSpaceBounds = BBox.FromPoints(worldSpacePoints)
 
     member this.VertexIndices = vertexIndices
     member this.Points = points
@@ -231,12 +231,12 @@ and Triangle(objectToWorld, reverseOrientation, mesh : TriangleMesh, n) =
               { X = 0.0f; Y = 1.0f } ]
 
     override this.ObjectSpaceBounds =
-        BBox.fromPointList [ this.WorldToObject |>> p1
-                             this.WorldToObject |>> p2
-                             this.WorldToObject |>> p3 ]
+        BBox.FromPoints [ this.WorldToObject |>> p1
+                          this.WorldToObject |>> p2
+                          this.WorldToObject |>> p3 ]
 
     override this.WorldSpaceBounds =
-        BBox.fromPointList [ p1; p2; p3 ]
+        BBox.FromPoints [ p1; p2; p3 ]
 
     override this.TryIntersect ray =
         // TODO: This is duplicated in other shapes.
@@ -244,24 +244,24 @@ and Triangle(objectToWorld, reverseOrientation, mesh : TriangleMesh, n) =
 
         let e1 = p2 - p1
         let e2 = p3 - p1
-        let s1 = cross ray.Direction e1
-        let divisor = dot s1 e1
+        let s1 = Vector.Cross(ray.Direction, e1)
+        let divisor = Vector.Dot(s1, e1)
 
         if divisor = 0.0f then defaultOutput else
             let invDivisor = 1.0f / divisor
 
             // Compute first barycentric coordinate
             let d = ray.Origin - p1
-            let b1 = dot d s1 * invDivisor
+            let b1 = Vector.Dot(d, s1) * invDivisor
             if b1 < 0.0f || b1 > 1.0f then defaultOutput else
                 
                 // Compute second barycentric coordinate
-                let s2 = cross d e1
-                let b2 = (dot ray.Direction s2) * invDivisor
+                let s2 = Vector.Cross(d, e1)
+                let b2 = Vector.Dot(ray.Direction, s2) * invDivisor
                 if b2 < 0.0f || b1 + b2 > 1.0f then defaultOutput else
 
                     // Compute t to intersection point
-                    let t = (dot e2 s2) * invDivisor
+                    let t = Vector.Dot(e2, s2) * invDivisor
                     if t < ray.MinT || t > ray.MaxT then defaultOutput else
                         
                         // Compute deltas for triangle partial derivatives
@@ -290,8 +290,8 @@ and Triangle(objectToWorld, reverseOrientation, mesh : TriangleMesh, n) =
                         // TODO
 
                         // Fill in DifferentialGeometry from triangle hit
-                        let dg = DifferentialGeometry(ray |> RaySegment.evaluate t, dpdu, dpdv,
-                                                      Vector.zero, Vector.zero,
+                        let dg = DifferentialGeometry(ray.Evaluate t, dpdu, dpdv,
+                                                      Vector.Zero, Vector.Zero,
                                                       tu, tv, this)
                         let rayEpsilon = 1e-3f * t
                         (true, t, rayEpsilon, Some(dg))

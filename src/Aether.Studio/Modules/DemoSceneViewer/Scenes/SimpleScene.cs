@@ -17,7 +17,7 @@ namespace Aether.Studio.Modules.DemoSceneViewer.Scenes
 		public override Scene CreateScene(Film film)
 		{
 			var camera = new OrthographicCamera(
-                TransformModule.LookAt(new Point(0, 0, -3), new Point(.2f, -.2f, 0), new Vector(0, 1, 0)),
+                Transform.LookAt(new Point(0, 0, -3), new Point(.2f, -.2f, 0), new Vector(0, 1, 0)),
                 new float[] { -2, 2, -1, 1 }, 0.0f, 1.0f, 0.0f, 1e30f, film);
 
 			var surfaceIntegrator = new WhittedIntegrator(6);
@@ -26,11 +26,11 @@ namespace Aether.Studio.Modules.DemoSceneViewer.Scenes
 				0, film.XRes,
                 0, film.YRes);
 
-            var shape = new Sphere(TransformModule.Translate(VectorModule.Zero), false, 5);
+            var shape = new Sphere(Transform.Translate(Vector.Zero), false, 5);
             var primitive = new GeometricPrimitive(shape, new MatteMaterial(new RgbSpectrum(new [] { 0.0f, 1.0f, 0.0f}))); // Green
 
             var lights = new List<Light>();
-            lights.Add(new DistantLight(TransformModule.Translate(VectorModule.Zero),
+            lights.Add(new DistantLight(Transform.Translate(Vector.Zero),
                 new RgbSpectrum(new[] { 1.0f, 1.0f, 1.0f }), new Vector(0, -1, 0))); // White.
 
             return new Scene(camera, surfaceIntegrator, sampler, primitive, lights);
