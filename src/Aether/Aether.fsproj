@@ -56,7 +56,9 @@
     <Compile Include="Transform.fs" />
     <Compile Include="MonteCarlo.fs" />
     <Compile Include="Lights.fs" />
-    <Compile Include="Shapes.fs" />
+    <Compile Include="Shapes/Shape.fs" />
+    <Compile Include="Shapes/Sphere.fs" />
+	<Compile Include="Shapes/TriangleMesh.fs" />
     <Compile Include="Reflection.fs" />
     <Compile Include="Materials.fs" />
     <Compile Include="Primitives.fs" />
