@@ -11,7 +11,7 @@ open Aether.Sampling
 type IIntegratableScene =
     inherit IIntersectable
     abstract Lights : seq<Light>
-    abstract TryIntersect : RaySegment -> (bool * option<Intersection>)
+    abstract TryIntersect : RaySegment -> Intersection option
 
 
 [<AbstractClass>]
@@ -33,7 +33,7 @@ type WhittedIntegrator(maxDepth) =
     override this.Li scene ray sample =
         // Search for ray-primitive intersection
         match scene.TryIntersect(ray) with
-        | (true, Some(intersection)) ->
+        | Some(intersection) ->
             // TODO: Initialize alpha for ray hit.
 
             // Compute emitted and reflected light at ray intersection point.
@@ -61,7 +61,7 @@ type WhittedIntegrator(maxDepth) =
 
             // TODO --_rayDepth; 
             result
-        | _ ->
+        | None ->
             // Handle ray with no intersection
             // TODO: Iterate through lights to see what they contribute to this ray
             Spectrum.Black

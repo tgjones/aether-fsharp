@@ -5,6 +5,7 @@ using Aether.Geometry;
 using Aether.Integrators;
 using Aether.Lights;
 using Aether.Materials;
+using Aether.Math;
 using Aether.Primitives;
 using Aether.Sampling;
 using Aether.Shapes;
@@ -26,7 +27,7 @@ namespace Aether.Studio.Modules.DemoSceneViewer.Scenes
 				0, film.XRes,
                 0, film.YRes);
 
-            var shape = new Sphere(Transform.Translate(Vector.Zero), false, 5);
+            var shape = new Sphere(Transform.Translate(Vector.Zero), false, 5, 5, 5, MathUtility.Pi * 2.0f);
             var primitive = new GeometricPrimitive(shape, new MatteMaterial(new RgbSpectrum(new [] { 0.0f, 1.0f, 0.0f}))); // Green
 
             var lights = new List<Light>();

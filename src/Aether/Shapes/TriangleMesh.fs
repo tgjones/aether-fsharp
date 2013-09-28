@@ -62,30 +62,27 @@ and Triangle(objectToWorld, reverseOrientation, mesh : TriangleMesh, n) =
         BBox.FromPoints [ p1; p2; p3 ]
 
     override this.TryIntersect ray =
-        // TODO: This is duplicated in other shapes.
-        let defaultOutput = (false, nanf, nanf, None)
-
         let e1 = p2 - p1
         let e2 = p3 - p1
         let s1 = Vector.Cross(ray.Direction, e1)
         let divisor = Vector.Dot(s1, e1)
 
-        if divisor = 0.0f then defaultOutput else
+        if divisor = 0.0f then None else
             let invDivisor = 1.0f / divisor
 
             // Compute first barycentric coordinate
             let d = ray.Origin - p1
             let b1 = Vector.Dot(d, s1) * invDivisor
-            if b1 < 0.0f || b1 > 1.0f then defaultOutput else
+            if b1 < 0.0f || b1 > 1.0f then None else
                 
                 // Compute second barycentric coordinate
                 let s2 = Vector.Cross(d, e1)
                 let b2 = Vector.Dot(ray.Direction, s2) * invDivisor
-                if b2 < 0.0f || b1 + b2 > 1.0f then defaultOutput else
+                if b2 < 0.0f || b1 + b2 > 1.0f then None else
 
                     // Compute t to intersection point
                     let t = Vector.Dot(e2, s2) * invDivisor
-                    if t < ray.MinT || t > ray.MaxT then defaultOutput else
+                    if t < ray.MinT || t > ray.MaxT then None else
                         
                         // Compute deltas for triangle partial derivatives
                         let du1 = uvs.[0].X - uvs.[2].X
@@ -117,4 +114,4 @@ and Triangle(objectToWorld, reverseOrientation, mesh : TriangleMesh, n) =
                                                       Vector.Zero, Vector.Zero,
                                                       tu, tv, this)
                         let rayEpsilon = 1e-3f * t
-                        (true, t, rayEpsilon, Some(dg))
+                        Some(t, rayEpsilon, dg)

@@ -2,9 +2,10 @@
 
 
 [<AutoOpen>]
-module GlobalFunctions =
+module MathUtility =
 
     /// PI
+    [<CompiledName("Pi")>]
     let pi = single(System.Math.PI)
 
     /// 1 / PI

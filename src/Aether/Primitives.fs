@@ -35,7 +35,7 @@ and [<AbstractClass>] Primitive() =
 
     abstract Refine : unit -> Primitive list
 
-    abstract TryIntersect : RaySegment -> (bool * option<Intersection>)
+    abstract TryIntersect : RaySegment -> Intersection option
     abstract Intersects : RaySegment -> bool
 
     abstract GetBsdf : DifferentialGeometry -> Transform -> Bsdf
@@ -59,12 +59,12 @@ type GeometricPrimitive(shape : Shape, material : Material) =
         match shape with
         | :? IntersectableShape as s ->
             match s.TryIntersect(ray) with
-            | (true, tHit, rayEpsilon, Some(dg)) ->
+            | Some(tHit, rayEpsilon, dg) ->
                 let intersection = Intersection(this, dg, shape.WorldToObject, rayEpsilon)
                 ray.MaxT <- tHit
-                (true, Some(intersection))
-            | _ ->
-                (false, None)
+                Some(intersection)
+            | None ->
+                None
         | _ -> failwith "Shape is not intersectable"
 
     override this.Intersects ray =

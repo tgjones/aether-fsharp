@@ -42,12 +42,13 @@ and [<AbstractClass>] Shape(objectToWorld : Transform, reverseOrientation) =
 and [<AbstractClass>] IntersectableShape(objectToWorld, reverseOrientation) =
     inherit Shape(objectToWorld, reverseOrientation)
 
-    abstract TryIntersect : RaySegment -> (bool * single * single * option<DifferentialGeometry>)
+    abstract TryIntersect : RaySegment -> (single * single * DifferentialGeometry) option
 
     abstract Intersects : RaySegment -> bool
     default this.Intersects ray =
-        let result, _, _, _ = this.TryIntersect(ray)
-        result
+        match this.TryIntersect(ray) with
+        | Some(_) -> true
+        | None -> false
 
 
 and [<AbstractClass>] RefinableShape(objectToWorld, reverseOrientation) =
