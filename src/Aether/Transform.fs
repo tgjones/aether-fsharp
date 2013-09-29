@@ -13,29 +13,28 @@ type Matrix4x4(values : single[,]) =
 
     /// Creates a matrix from the given values. Often more convenient than
     /// calling the constructor with a 2D array.
-    static member FromValues (t00 : single) (t01 : single) (t02 : single) (t03 : single)
-                             (t10 : single) (t11 : single) (t12 : single) (t13 : single)
-                             (t20 : single) (t21 : single) (t22 : single) (t23 : single)
-                             (t30 : single) (t31 : single) (t32 : single) (t33 : single) =
-        let values = array2D [ [ t00; t01; t02; t03 ]
-                               [ t10; t11; t12; t13 ]
-                               [ t20; t21; t22; t23 ]
-                               [ t30; t31; t32; t33 ] ]
-        Matrix4x4(values)
+    new(t00, t01, t02, t03,
+        t10, t11, t12, t13,
+        t20, t21, t22, t23,
+        t30, t31, t32, t33) =
+        Matrix4x4(array2D [ [ t00; t01; t02; t03 ]
+                            [ t10; t11; t12; t13 ]
+                            [ t20; t21; t22; t23 ]
+                            [ t30; t31; t32; t33 ] ])
 
     /// Returns the identity matrix. The identity matrix has ones on the main
     /// diagonal, and zeros elsewhere.
-    static member Identity = Matrix4x4.FromValues 1.0f 0.0f 0.0f 0.0f
-                                                  0.0f 1.0f 0.0f 0.0f
-                                                  0.0f 0.0f 1.0f 0.0f
-                                                  0.0f 0.0f 0.0f 1.0f
+    static member Identity = Matrix4x4(1.0f, 0.0f, 0.0f, 0.0f,
+                                       0.0f, 1.0f, 0.0f, 0.0f,
+                                       0.0f, 0.0f, 1.0f, 0.0f,
+                                       0.0f, 0.0f, 0.0f, 1.0f)
 
     /// Turns the rows of a given matrix into columns and vice-versa.
     static member Transpose (m : Matrix4x4) =
-        Matrix4x4.FromValues m.[0, 0] m.[1, 0] m.[2, 0] m.[3, 0]
-                             m.[0, 1] m.[1, 1] m.[2, 1] m.[3, 1]
-                             m.[0, 2] m.[1, 2] m.[2, 2] m.[3, 2]
-                             m.[0, 3] m.[1, 3] m.[2, 3] m.[3, 3]
+        Matrix4x4(m.[0, 0], m.[1, 0], m.[2, 0], m.[3, 0],
+                  m.[0, 1], m.[1, 1], m.[2, 1], m.[3, 1],
+                  m.[0, 2], m.[1, 2], m.[2, 2], m.[3, 2],
+                  m.[0, 3], m.[1, 3], m.[2, 3], m.[3, 3])
 
     /// Calculates the matrix product of two given matrices.
     static member Mul (m1 : Matrix4x4) (m2 : Matrix4x4) =
@@ -138,28 +137,28 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
         Transform(m1, m2)
 
     static member Translate(x, y, z) = 
-        let m = Matrix4x4.FromValues 1.0f 0.0f 0.0f x
-                                     0.0f 1.0f 0.0f y
-                                     0.0f 0.0f 1.0f z
-                                     0.0f 0.0f 0.0f 1.0f
-        let minv = Matrix4x4.FromValues 1.0f 0.0f 0.0f -x
-                                        0.0f 1.0f 0.0f -y
-                                        0.0f 0.0f 1.0f -z
-                                        0.0f 0.0f 0.0f 1.0f
+        let m = Matrix4x4(1.0f, 0.0f, 0.0f, x,
+                          0.0f, 1.0f, 0.0f, y,
+                          0.0f, 0.0f, 1.0f, z,
+                          0.0f, 0.0f, 0.0f, 1.0f)
+        let minv = Matrix4x4(1.0f, 0.0f, 0.0f, -x,
+                             0.0f, 1.0f, 0.0f, -y,
+                             0.0f, 0.0f, 1.0f, -z,
+                             0.0f, 0.0f, 0.0f, 1.0f)
         Transform(m, minv)
 
     static member Translate(delta : Vector) =
         Transform.Translate(delta.X, delta.Y, delta.Z)
 
     static member Scale(x, y, z) =
-        let m = Matrix4x4.FromValues x    0.0f 0.0f 0.0f
-                                     0.0f y    0.0f 0.0f
-                                     0.0f 0.0f z    0.0f
-                                     0.0f 0.0f 0.0f 1.0f
-        let minv = Matrix4x4.FromValues (1.0f / x) 0.0f       0.0f       0.0f
-                                        0.0f       (1.0f / y) 0.0f       0.0f
-                                        0.0f       0.0f       (1.0f / z) 0.0f
-                                        0.0f       0.0f       0.0f       1.0f
+        let m = Matrix4x4(x,    0.0f, 0.0f, 0.0f,
+                          0.0f, y,    0.0f, 0.0f,
+                          0.0f, 0.0f, z,    0.0f,
+                          0.0f, 0.0f, 0.0f, 1.0f)
+        let minv = Matrix4x4(1.0f / x, 0.0f,     0.0f,     0.0f,
+                             0.0f,     1.0f / y, 0.0f,     0.0f,
+                             0.0f,     0.0f,     1.0f / z, 0.0f,
+                             0.0f,     0.0f,     0.0f,     1.0f)
         Transform(m, minv)
 
     static member Scale(values : Vector) =
@@ -168,28 +167,28 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
     static member RotateX angle =
         let sinT = sin (toRadians angle)
         let cosT = cos (toRadians angle)
-        let m = Matrix4x4.FromValues 1.0f 0.0f  0.0f 0.0f
-                                     0.0f cosT -sinT 0.0f
-                                     0.0f sinT  cosT 0.0f
-                                     0.0f 0.0f  0.0f 1.0f
+        let m = Matrix4x4(1.0f, 0.0f,  0.0f, 0.0f,
+                          0.0f, cosT, -sinT, 0.0f,
+                          0.0f, sinT,  cosT, 0.0f,
+                          0.0f, 0.0f,  0.0f, 1.0f)
         Transform(m, Matrix4x4.Transpose m)
 
     static member RotateY angle =
         let sinT = sin (toRadians angle)
         let cosT = cos (toRadians angle)
-        let m = Matrix4x4.FromValues  cosT 0.0f sinT 0.0f
-                                      0.0f 1.0f 0.0f 0.0f
-                                     -sinT 0.0f cosT 0.0f
-                                      0.0f 0.0f 0.0f 1.0f
+        let m = Matrix4x4(cosT,  0.0f, sinT, 0.0f,
+                          0.0f,  1.0f, 0.0f, 0.0f,
+                          -sinT, 0.0f, cosT, 0.0f,
+                          0.0f,  0.0f, 0.0f, 1.0f)
         Transform(m, Matrix4x4.Transpose m)
 
     static member RotateZ angle =
         let sinT = sin (toRadians angle)
         let cosT = cos (toRadians angle)
-        let m = Matrix4x4.FromValues cosT -sinT 0.0f 0.0f
-                                     sinT  cosT 0.0f 0.0f
-                                     0.0f  0.0f 1.0f 0.0f
-                                     0.0f  0.0f 0.0f 1.0f
+        let m = Matrix4x4(cosT, -sinT, 0.0f, 0.0f,
+                          sinT,  cosT, 0.0f, 0.0f,
+                          0.0f,  0.0f, 1.0f, 0.0f,
+                          0.0f,  0.0f, 0.0f, 1.0f)
         Transform(m, Matrix4x4.Transpose m)
 
     static member Rotate angle (axis : Vector) =
@@ -310,10 +309,10 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
 
     static member Perspective fov n f =
         // Perform perspective divide.
-        let persp = Matrix4x4.FromValues 1.0f 0.0f          0.0f             0.0f
-                                         0.0f 1.0f          0.0f             0.0f
-                                         0.0f 0.0f (f / (f - n)) (-f*n / (f - n))
-                                         0.0f 0.0f          1.0f             0.0f
+        let persp = Matrix4x4(1.0f, 0.0f, 0.0f,        0.0f,
+                              0.0f, 1.0f, 0.0f,        0.0f,
+                              0.0f, 0.0f, f / (f - n), -f*n / (f - n),
+                              0.0f, 0.0f, 1.0f,        0.0f)
 
         // Scale to canonical viewing volume.
         let invTanAng = 1.0f / (tan ((toRadians fov) / 2.0f))

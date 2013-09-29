@@ -166,7 +166,7 @@ paramValue.AddProduction(quotedString).SetReduceFunction (fun a -> StringValue(a
 point3D.AddProduction(floatOrInt, floatOrInt, floatOrInt).SetReduceFunction (fun a b c -> Point(a, b, c))
 vector3D.AddProduction(floatOrInt, floatOrInt, floatOrInt).SetReduceFunction (fun a b c -> Vector(a, b, c))
 matrix3D.AddProduction(floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt, floatOrInt)
-    .SetReduceFunction (fun m00 m01 m02 m03 m10 m11 m12 m13 m20 m21 m22 m23 m30 m31 m32 m33 -> Matrix4x4.FromValues m00 m01 m02 m03 m10 m11 m12 m13 m20 m21 m22 m23 m30 m31 m32 m33)
+    .SetReduceFunction (fun m00 m01 m02 m03 m10 m11 m12 m13 m20 m21 m22 m23 m30 m31 m32 m33 -> Matrix4x4(m00, m01, m02, m03, m10, m11, m12, m13, m20, m21, m22, m23, m30, m31, m32, m33))
 floatOrInt.AddProduction(floatLiteral).SetReduceToFirst()
 floatOrInt.AddProduction(integerLiteral).SetReduceFunction (fun a -> single a)
 
