@@ -59,6 +59,8 @@ type OrthographicCamera(cam2World : Transform, screenWindow, shutterOpen, shutte
 //            let lensU, lensV = concentricSampleDisk sample.LensU
 
 //        let ray' = RaySegment.withTime sample.Time ray
+
+        // TODO: Problem seems to be here.
         let ray' = cam2World |>> ray
         ray'
 

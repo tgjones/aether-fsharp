@@ -11,6 +11,8 @@ type Matrix4x4(values : single[,]) =
     member m.Item
         with get (i,j) = values.[i,j]
 
+    /// Creates a matrix from the given values. Often more convenient than
+    /// calling the constructor with a 2D array.
     static member FromValues (t00 : single) (t01 : single) (t02 : single) (t03 : single)
                              (t10 : single) (t11 : single) (t12 : single) (t13 : single)
                              (t20 : single) (t21 : single) (t22 : single) (t23 : single)
@@ -21,17 +23,21 @@ type Matrix4x4(values : single[,]) =
                                [ t30; t31; t32; t33 ] ]
         Matrix4x4(values)
 
+    /// Returns the identity matrix. The identity matrix has ones on the main
+    /// diagonal, and zeros elsewhere.
     static member Identity = Matrix4x4.FromValues 1.0f 0.0f 0.0f 0.0f
                                                   0.0f 1.0f 0.0f 0.0f
                                                   0.0f 0.0f 1.0f 0.0f
                                                   0.0f 0.0f 0.0f 1.0f
 
+    /// Turns the rows of a given matrix into columns and vice-versa.
     static member Transpose (m : Matrix4x4) =
         Matrix4x4.FromValues m.[0, 0] m.[1, 0] m.[2, 0] m.[3, 0]
                              m.[0, 1] m.[1, 1] m.[2, 1] m.[3, 1]
-                             m.[0, 2] m.[1, 2] m.[2, 3] m.[3, 2]
+                             m.[0, 2] m.[1, 2] m.[2, 2] m.[3, 2]
                              m.[0, 3] m.[1, 3] m.[2, 3] m.[3, 3]
 
+    /// Calculates the matrix product of two given matrices.
     static member Mul (m1 : Matrix4x4) (m2 : Matrix4x4) =
         let values = Array2D.zeroCreate<single> 4 4
         for i in 0..3 do
@@ -42,10 +48,13 @@ type Matrix4x4(values : single[,]) =
                                 m1.[i,3] * m2.[3,j]
         Matrix4x4(values)
 
+    /// Inverts a given matrix using a numerically stable Gauss-Jordan
+    /// elimination route. The matrix inverse, also known as the reciprocal,
+    /// is calculated such that M * MInv = I, where I is the identity matrix.
     static member Inverse (m : Matrix4x4) =
         let indxc = Array.zeroCreate<int> 4
         let indxr = Array.zeroCreate<int> 4
-        let ipiv = [| 0; 0; 0; 0 |]
+        let ipiv =  Array.zeroCreate<int> 4
         let minv = Array2D.copy m.Values
         
         for i in 0..3 do
@@ -93,7 +102,7 @@ type Matrix4x4(values : single[,]) =
                         minv.[j,k] <- minv.[j,k] - (minv.[icol,k] * save)
 
         // Swap columns to reflect permutation.
-        for j in 3..0 do
+        for j = 3 downto 0 do
             if indxr.[j] <> indxc.[j] then
                 for k in 0..3 do
                     swap &minv.[k,indxr.[j]] &minv.[k,indxc.[j]]
@@ -107,6 +116,13 @@ type Matrix4x4(values : single[,]) =
 
     override this.GetHashCode() =
         values.GetHashCode()
+
+    override this.ToString() =
+        sprintf "{M00:%f M01:%f M02:%f M03:%f} {M10:%f M11:%f M12:%f M13:%f} {M20:%f M21:%f M22:%f M23:%f} {M30:%f M31:%f M32:%f M33:%f}"
+                this.[0,0] this.[0,1] this.[0,2] this.[0,3]
+                this.[1,0] this.[1,1] this.[1,2] this.[1,3]
+                this.[2,0] this.[2,1] this.[2,2] this.[2,3]
+                this.[3,0] this.[3,1] this.[3,2] this.[3,3]
 
 
 type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =

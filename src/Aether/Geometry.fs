@@ -323,6 +323,9 @@ type RaySegment(origin : Point, direction : Vector,
     member this.Evaluate t =
         this.Origin + this.Direction * t
 
+    override this.ToString() =
+        sprintf "{Origin:%O Direction:%O MinT:%f MaxT:%f}" this.Origin this.Direction this.MinT this.MaxT
+
 
 type BBox(min, max) =
     member this.Min = min

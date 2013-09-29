@@ -53,6 +53,7 @@
     <Compile Include="MathTests.fs" />
     <Compile Include="SpectrumTests.fs" />
     <Compile Include="GeometryTests.fs" />
+    <Compile Include="TransformsTests.fs" />
     <Compile Include="ShapesTests.fs" />
     <Compile Include="FiltersTests.fs" />
     <Compile Include="SamplingTests.fs" />
