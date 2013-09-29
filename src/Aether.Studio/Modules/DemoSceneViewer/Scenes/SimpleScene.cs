@@ -18,7 +18,7 @@ namespace Aether.Studio.Modules.DemoSceneViewer.Scenes
 		public override Scene CreateScene(Film film)
 		{
 			var camera = new OrthographicCamera(
-                Transform.LookAt(new Point(0, 0, -3), new Point(.2f, -.2f, 0), new Vector(0, 1, 0)),
+                Transform.LookAt(new Point(0, 0, -10), new Point(0, 0, 0), new Vector(0, 1, 0)),
                 new float[] { -2, 2, -1, 1 }, 0.0f, 1.0f, 0.0f, 1e30f, film);
 
 			var surfaceIntegrator = new WhittedIntegrator(6);

@@ -1,7 +1,4 @@
 ﻿namespace ``Transforms - Matrix4x4``
-
-    open NHamcrest
-
     open Xunit
     open Xunit.Extensions
     open FsUnit.Xunit
@@ -86,3 +83,75 @@
                                                                   -0.04f -0.34f -0.20f  0.38f
                                                                    0.06f  0.88f  0.31f -0.77f)
             checkArraysRoughlyMatch (Matrix4x4.Mul matrix inverse) Matrix4x4.Identity
+
+
+namespace ``Transforms - Transform``
+    open Xunit
+    open Xunit.Extensions
+    open FsUnit.Xunit
+    open Aether.Geometry
+    open Aether.Transforms
+
+    type ``Given a matrix and its inverse`` () =
+        let matrix = Matrix4x4.FromValues  3.0f 11.0f  4.0f  7.0f
+                                            8.0f  5.0f 13.0f 12.0f
+                                           14.0f  6.0f  2.0f 10.0f
+                                           15.0f  9.0f 16.0f 17.0f
+        let matrixInverse = Matrix4x4.Inverse(matrix)
+
+        [<Fact>]
+        let ``a Transform can be constructed`` () =
+            let transform = Transform(matrix, matrixInverse)
+            transform.Matrix |> should equal matrix
+            transform.MatrixInverse |> should equal matrixInverse
+
+    type ``Given a matrix`` () =
+        let matrix = Matrix4x4.FromValues  3.0f 11.0f  4.0f  7.0f
+                                           8.0f  5.0f 13.0f 12.0f
+                                          14.0f  6.0f  2.0f 10.0f
+                                          15.0f  9.0f 16.0f 17.0f
+
+        [<Fact>]
+        let ``a Transform can be constructed`` () =
+            let transform = Transform(matrix)
+            transform.Matrix |> should equal matrix
+            transform.MatrixInverse |> should equal (Matrix4x4.Inverse(matrix))
+
+    type ``Arithmetic operators`` () =
+        let matrix = Matrix4x4.FromValues  3.0f 11.0f  4.0f  7.0f
+                                           8.0f  5.0f 13.0f 12.0f
+                                          14.0f  6.0f  2.0f 10.0f
+                                          15.0f  9.0f 16.0f 17.0f
+        let transform = Transform(matrix)
+
+        [<Fact>]
+        let ``multiplication`` () =
+            let expectedResult = Transform(Matrix4x4.FromValues 258.0f 175.0f 275.0f 312.0f
+                                                                426.0f 299.0f 315.0f 450.0f
+                                                                268.0f 286.0f 298.0f 360.0f
+                                                                596.0f 459.0f 481.0f 662.0f)
+            transform * transform |> should equal expectedResult
+
+    type ``Factory methods`` () =
+        
+        [<Fact>]
+        let ``Translate creates a translation transform`` () =
+            let result = Transform.Translate(1.5f, 2.5f, 3.5f)
+            result.Matrix |> should equal (Matrix4x4.FromValues 1.0f 0.0f 0.0f 1.5f
+                                                                0.0f 1.0f 0.0f 2.5f
+                                                                0.0f 0.0f 1.0f 3.5f
+                                                                0.0f 0.0f 0.0f 1.0f)
+            result.MatrixInverse |> should equal (Matrix4x4.FromValues 1.0f 0.0f 0.0f -1.5f
+                                                                       0.0f 1.0f 0.0f -2.5f
+                                                                       0.0f 0.0f 1.0f -3.5f
+                                                                       0.0f 0.0f 0.0f 1.0f)
+            Matrix4x4.Mul result.Matrix result.MatrixInverse |> should equal Matrix4x4.Identity
+
+        [<Fact>]
+        let ``Scale creates a scaling transform`` () =
+            let result = Transform.Scale(1.5f, 2.5f, 3.5f)
+            result.Matrix |> should equal (Matrix4x4.FromValues 1.5f 0.0f 0.0f 0.0f
+                                                                0.0f 2.5f 0.0f 0.0f
+                                                                0.0f 0.0f 3.5f 0.0f
+                                                                0.0f 0.0f 0.0f 1.0f)
+            Matrix4x4.Mul result.Matrix result.MatrixInverse |> should equal Matrix4x4.Identity

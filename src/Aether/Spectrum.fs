@@ -811,5 +811,8 @@ type RgbSpectrum(rgb) =
     member this.ToXyz(xyz) =
         SpectrumUtilities.rgbToXyz this.Coefficients xyz
 
+    override this.ToString() =
+        sprintf "{R:%f G:%f B:%f}" rgb.[0] rgb.[1] rgb.[2]
+
 
 type Spectrum = RgbSpectrum

@@ -137,18 +137,21 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
         let m2 = Matrix4x4.Mul t2.MatrixInverse t1.MatrixInverse
         Transform(m1, m2)
 
-    static member Translate (delta : Vector) =
-        let m = Matrix4x4.FromValues 1.0f 0.0f 0.0f delta.X
-                                     0.0f 1.0f 0.0f delta.Y
-                                     0.0f 0.0f 1.0f delta.Z
+    static member Translate(x, y, z) = 
+        let m = Matrix4x4.FromValues 1.0f 0.0f 0.0f x
+                                     0.0f 1.0f 0.0f y
+                                     0.0f 0.0f 1.0f z
                                      0.0f 0.0f 0.0f 1.0f
-        let minv = Matrix4x4.FromValues 1.0f 0.0f 0.0f -delta.X
-                                        0.0f 1.0f 0.0f -delta.Y
-                                        0.0f 0.0f 1.0f -delta.Z
+        let minv = Matrix4x4.FromValues 1.0f 0.0f 0.0f -x
+                                        0.0f 1.0f 0.0f -y
+                                        0.0f 0.0f 1.0f -z
                                         0.0f 0.0f 0.0f 1.0f
         Transform(m, minv)
 
-    static member Scale x y z =
+    static member Translate(delta : Vector) =
+        Transform.Translate(delta.X, delta.Y, delta.Z)
+
+    static member Scale(x, y, z) =
         let m = Matrix4x4.FromValues x    0.0f 0.0f 0.0f
                                      0.0f y    0.0f 0.0f
                                      0.0f 0.0f z    0.0f
@@ -158,6 +161,9 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
                                         0.0f       0.0f       (1.0f / z) 0.0f
                                         0.0f       0.0f       0.0f       1.0f
         Transform(m, minv)
+
+    static member Scale(values : Vector) =
+        Transform.Scale(values.X, values.Y, values.Z)
 
     static member RotateX angle =
         let sinT = sin (toRadians angle)
@@ -299,8 +305,8 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
         det < 0.0f
 
     static member Orthographic zNear zFar =
-        (Transform.Scale 1.0f 1.0f (1.0f / (zFar - zNear))) *
-        (Transform.Translate (Vector(0.0f, 0.0f, -zNear)))
+        Transform.Scale(1.0f, 1.0f, 1.0f / (zFar - zNear)) *
+        Transform.Translate(0.0f, 0.0f, -zNear)
 
     static member Perspective fov n f =
         // Perform perspective divide.
@@ -311,7 +317,7 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
 
         // Scale to canonical viewing volume.
         let invTanAng = 1.0f / (tan ((toRadians fov) / 2.0f))
-        (Transform.Scale invTanAng invTanAng 1.0f) * Transform(persp)
+        Transform.Scale(invTanAng, invTanAng, 1.0f) * Transform(persp)
 
     member this.HasScale() =
         let la2 = (this.Transform(Vector(1.0f, 0.0f, 0.0f))).LengthSquared()
@@ -325,6 +331,17 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
 
     static member Transpose (t : Transform) =
         Transform(Matrix4x4.Transpose t.Matrix, Matrix4x4.Transpose t.MatrixInverse)
+
+    override this.Equals(other) =
+        match other with
+        | :? Transform as t2 -> matrix = t2.Matrix
+        | _ -> false
+
+    override this.GetHashCode() =
+        matrix.GetHashCode()
+
+    override this.ToString() =
+        matrix.ToString()
 
 
 [<AutoOpen>]
