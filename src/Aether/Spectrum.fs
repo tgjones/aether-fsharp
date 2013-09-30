@@ -27,6 +27,10 @@ type CoefficientSpectrum(coefficients : single[]) =
     member this.NumSamples = coefficients.Length
     member this.Coefficients = coefficients
 
+    member this.Add (other : #CoefficientSpectrum) =
+        for n in [0 .. coefficients.Length-1] do
+            coefficients.[n] <- coefficients.[n] + other.Coefficients.[n]
+
     static member private doOperation(left : #CoefficientSpectrum, right : #CoefficientSpectrum, op) =
         let leftc, rightc = left.Coefficients, right.Coefficients
         CoefficientSpectrum.doOperation(left.NumSamples, (fun n -> (op leftc.[n] rightc.[n])), downcast left.Clone())
@@ -74,7 +78,7 @@ type CoefficientSpectrum(coefficients : single[]) =
         | _ -> false
 
     member this.IsBlack () =
-        coefficients |> Array.exists (fun x -> x <> 0.0f)
+        coefficients |> Array.forall (fun x -> x = 0.0f)
 
 
 type SampledSpectrum(coefficients) =

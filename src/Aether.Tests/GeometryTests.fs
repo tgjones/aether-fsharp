@@ -104,8 +104,11 @@
             phi |> should (equalWithin 0.01f) expectedPhi
 
         [<Fact>]
-        let ``zero should be zero`` () =
+        let ``Preset units should be correct`` () =
             Vector.Zero |> should equal (Vector(0.0f, 0.0f, 0.0f))
+            Vector.UnitX |> should equal (Vector(1.0f, 0.0f, 0.0f))
+            Vector.UnitY |> should equal (Vector(0.0f, 1.0f, 0.0f))
+            Vector.UnitZ |> should equal (Vector(0.0f, 0.0f, 1.0f))
 
         [<Fact>]
         let ``toNormal converts a Vector to a Normal`` () =

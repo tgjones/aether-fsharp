@@ -43,7 +43,7 @@ type ProjectiveCamera(cam2World, projection : Transform,
 
 type OrthographicCamera(cam2World : Transform, screenWindow, shutterOpen, shutterClose,
                         lensRadius, focalDistance, film) =
-    inherit ProjectiveCamera(cam2World, Transform.Orthographic 0.0f 1.0f,
+    inherit ProjectiveCamera(cam2World, Transform.Orthographic(0.0f, 1.0f),
                              screenWindow, shutterOpen, shutterClose,
                              lensRadius, focalDistance, film)
 
@@ -67,7 +67,7 @@ type OrthographicCamera(cam2World : Transform, screenWindow, shutterOpen, shutte
 
 type PerspectiveCamera(cam2World : Transform, screenWindow, shutterOpen, shutterClose,
                        lensRadius, focalDistance, fieldOfView, film) =
-    inherit ProjectiveCamera(cam2World, Transform.Perspective fieldOfView 1e-2f 1000.0f,
+    inherit ProjectiveCamera(cam2World, Transform.Perspective(fieldOfView, 1e-2f, 1000.0f),
                              screenWindow, shutterOpen, shutterClose, lensRadius,
                              focalDistance, film)
 

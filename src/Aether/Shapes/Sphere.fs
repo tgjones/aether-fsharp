@@ -5,13 +5,13 @@ open Aether.Geometry
 open Aether.Transforms
 
 
-type Sphere(objectToWorld, reverseOrientation, radius, zMin, zMax, phiMax) =
+type Sphere(objectToWorld, reverseOrientation, radius, zMin, zMax, phiMax') =
     inherit IntersectableShape(objectToWorld, reverseOrientation)
 
     let thetaMin = acos (clamp (zMin / radius) -1.0f 1.0f)
     let thetaMax = acos (clamp (zMax / radius) -1.0f 1.0f)
     let thetaDiff = thetaMax - thetaMin
-    let phiMax = toRadians (clamp phiMax 0.0f 360.0f)
+    let phiMax = toRadians (clamp phiMax' 0.0f 360.0f)
 
     member this.Radius = radius
 

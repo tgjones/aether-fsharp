@@ -4,6 +4,7 @@ open Aether.Math
 open Aether.Geometry
 
 
+/// 4x4 matrix.
 type Matrix4x4(values : single[,]) =
 
     member this.Values = values
@@ -124,6 +125,7 @@ type Matrix4x4(values : single[,]) =
                 this.[3,0] this.[3,1] this.[3,2] this.[3,3]
 
 
+/// Container for a matrix and its inverse.
 type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
     
     new(matrix) = Transform(matrix, Matrix4x4.Inverse matrix)
@@ -131,11 +133,14 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
     member this.Matrix = matrix
     member this.MatrixInverse = matrixInverse
 
+    /// Combines the two transforms. Note that the second transform will be
+    /// applied first.
     static member (*) (t1 : Transform, t2 : Transform) =
         let m1 = Matrix4x4.Mul t1.Matrix t2.Matrix
         let m2 = Matrix4x4.Mul t2.MatrixInverse t1.MatrixInverse
         Transform(m1, m2)
 
+    /// Creates a translation transform.
     static member Translate(x, y, z) = 
         let m = Matrix4x4(1.0f, 0.0f, 0.0f, x,
                           0.0f, 1.0f, 0.0f, y,
@@ -147,9 +152,11 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
                              0.0f, 0.0f, 0.0f, 1.0f)
         Transform(m, minv)
 
+    /// Creates a translation transform.
     static member Translate(delta : Vector) =
         Transform.Translate(delta.X, delta.Y, delta.Z)
 
+    /// Creates a scaling transform.
     static member Scale(x, y, z) =
         let m = Matrix4x4(x,    0.0f, 0.0f, 0.0f,
                           0.0f, y,    0.0f, 0.0f,
@@ -161,9 +168,11 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
                              0.0f,     0.0f,     0.0f,     1.0f)
         Transform(m, minv)
 
+    /// Creates a scaling transform.
     static member Scale(values : Vector) =
         Transform.Scale(values.X, values.Y, values.Z)
 
+    /// Creates a transform that rotates by a given angle around the x axis.
     static member RotateX angle =
         let sinT = sin (toRadians angle)
         let cosT = cos (toRadians angle)
@@ -173,6 +182,7 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
                           0.0f, 0.0f,  0.0f, 1.0f)
         Transform(m, Matrix4x4.Transpose m)
 
+    /// Creates a transform that rotates by a given angle around the y axis.
     static member RotateY angle =
         let sinT = sin (toRadians angle)
         let cosT = cos (toRadians angle)
@@ -182,6 +192,7 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
                           0.0f,  0.0f, 0.0f, 1.0f)
         Transform(m, Matrix4x4.Transpose m)
 
+    /// Creates a transform that rotates by a given angle around the z axis.
     static member RotateZ angle =
         let sinT = sin (toRadians angle)
         let cosT = cos (toRadians angle)
@@ -191,6 +202,7 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
                           0.0f,  0.0f, 0.0f, 1.0f)
         Transform(m, Matrix4x4.Transpose m)
 
+    /// Creates a transform that rotates by a given angle around a given axis.
     static member Rotate angle (axis : Vector) =
         let a = Vector.Normalize axis
         let s = sin (toRadians angle)
@@ -202,7 +214,7 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
         m.[0,2] <- a.X * a.Z * (1.0f - c) + a.Y * s
         m.[0,3] <- 0.0f
 
-        m.[1,0] <- a.X * a.Y + (1.0f - c) + a.Z * s
+        m.[1,0] <- a.X * a.Y * (1.0f - c) + a.Z * s
         m.[1,1] <- a.Y * a.Y + (1.0f - a.Y * a.Y) * c
         m.[1,2] <- a.Y * a.Z * (1.0f - c) - a.X * s
         m.[1,3] <- 0.0f
@@ -220,7 +232,11 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
         let mat = Matrix4x4(m)
         Transform(mat, Matrix4x4.Transpose mat)
 
-    static member LookAt (pos : Point) (look : Point) (up : Vector) =
+    /// Creates a transform that places a virtual camera in a scene at a given
+    /// position, looking at a given point, with a given "up" vector that 
+    /// orients the camera along the viewing direction implied by the first
+    /// two parameters.
+    static member LookAt(pos : Point, look : Point, up : Vector) =
         let m = Array2D.zeroCreate 4 4
 
         // Initialize fourth column of viewing matrix.
@@ -291,6 +307,8 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
         RaySegment(this.Transform(r.Origin), this.Transform(r.Direction),
                    r.MinT, r.MaxT, r.Time)
 
+    /// Returns true if the transform changes a left-handed coordinate system
+    /// into a right-handed one, or vice-versa.
     member this.SwapsHandedness() =
         let det = ((matrix.[0,0] *
                     (matrix.[1,1] * matrix.[2,2] -
@@ -303,11 +321,15 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
                      matrix.[1,1] * matrix.[2,0])));
         det < 0.0f
 
-    static member Orthographic zNear zFar =
+    /// Maps z values at the near plane to 0 and z values at the far plane to 1.
+    static member Orthographic(zNear, zFar) =
         Transform.Scale(1.0f, 1.0f, 1.0f / (zFar - zNear)) *
         Transform.Translate(0.0f, 0.0f, -zNear)
 
-    static member Perspective fov n f =
+    /// Maps z values at the near plane to 0 and z values at the far plane to 1,
+    /// and scales x and y values on the projection plane based on the given
+    /// field of view.
+    static member Perspective(fov, n, f) =
         // Perform perspective divide.
         let persp = Matrix4x4(1.0f, 0.0f, 0.0f,        0.0f,
                               0.0f, 1.0f, 0.0f,        0.0f,
@@ -318,11 +340,14 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
         let invTanAng = 1.0f / (tan ((toRadians fov) / 2.0f))
         Transform.Scale(invTanAng, invTanAng, 1.0f) * Transform(persp)
 
+    /// Returns true if the transform has a scaling term in it.
     member this.HasScale() =
-        let la2 = (this.Transform(Vector(1.0f, 0.0f, 0.0f))).LengthSquared()
-        let lb2 = (this.Transform(Vector(0.0f, 1.0f, 0.0f))).LengthSquared()
-        let lc2 = (this.Transform(Vector(0.0f, 0.0f, 1.0f))).LengthSquared()
-        let notOne x = x < 0.999f || x > 1.001f
+        // Transform each of the three coordinate axes and see if any of their
+        // lengths are noticeably different from one.
+        let la2 = this.Transform(Vector.UnitX).LengthSquared()
+        let lb2 = this.Transform(Vector.UnitY).LengthSquared()
+        let lc2 = this.Transform(Vector.UnitZ).LengthSquared()
+        let inline notOne x = x < 0.999f || x > 1.001f
         notOne la2 || notOne lb2 || notOne lc2
 
     static member Inverse (t : Transform) =

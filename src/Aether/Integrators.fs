@@ -55,8 +55,8 @@ type WhittedIntegrator(maxDepth) =
                 if not(li.IsBlack()) then // Early exit for no light
                     let f = bsdf.Evaluate(wo, directionToLight)
                     if not(f.IsBlack()) && visibilityTester |> VisibilityTester.unoccluded scene then
-                        // TODO : Following line isn't great...
-                        result <- CoefficientSpectrum.op_Addition(result, CoefficientSpectrum.op_Multiply(f * li, Vector.AbsDot(directionToLight, n)))
+                        let color : RgbSpectrum = f * li
+                        result.Add(color * Vector.AbsDot(directionToLight, n))
                             //* visibilityTester.Transmittance(scene);
 
             // TODO --_rayDepth; 

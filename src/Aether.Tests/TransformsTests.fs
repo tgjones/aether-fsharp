@@ -1,6 +1,4 @@
-﻿namespace ``Transforms - Matrix4x4``
-    open Xunit
-    open Xunit.Extensions
+﻿namespace TransformsTests
     open FsUnit.Xunit
     open Aether.Transforms
 
@@ -10,6 +8,13 @@
             for i in 0..3 do
                 for j in 0..3 do
                     m1.[i,j] |> should (equalWithin 0.01f) m2.[i,j]
+
+namespace ``Transforms - Matrix4x4``
+    open Xunit
+    open Xunit.Extensions
+    open FsUnit.Xunit
+    open Aether.Transforms
+    open TransformsTests
 
     type ``Given an array of values`` () =
         let values = array2D [ [ 0.0f; 1.0f; 2.0f; 3.0f ]
@@ -91,6 +96,7 @@ namespace ``Transforms - Transform``
     open FsUnit.Xunit
     open Aether.Geometry
     open Aether.Transforms
+    open TransformsTests
 
     type ``Given a matrix and its inverse`` () =
         let matrix = Matrix4x4(3.0f,  11.0f,  4.0f,  7.0f,
@@ -133,6 +139,9 @@ namespace ``Transforms - Transform``
             transform * transform |> should equal expectedResult
 
     type ``Factory methods`` () =
+
+        let checkInverse (t : Transform) =
+            checkArraysRoughlyMatch (Matrix4x4.Mul t.Matrix t.MatrixInverse) Matrix4x4.Identity
         
         [<Fact>]
         let ``Translate creates a translation transform`` () =
@@ -145,7 +154,7 @@ namespace ``Transforms - Transform``
                                                             0.0f, 1.0f, 0.0f, -2.5f,
                                                             0.0f, 0.0f, 1.0f, -3.5f,
                                                             0.0f, 0.0f, 0.0f, 1.0f))
-            Matrix4x4.Mul result.Matrix result.MatrixInverse |> should equal Matrix4x4.Identity
+            checkInverse result
 
         [<Fact>]
         let ``Scale creates a scaling transform`` () =
@@ -154,4 +163,132 @@ namespace ``Transforms - Transform``
                                                      0.0f, 2.5f, 0.0f, 0.0f,
                                                      0.0f, 0.0f, 3.5f, 0.0f,
                                                      0.0f, 0.0f, 0.0f, 1.0f))
-            Matrix4x4.Mul result.Matrix result.MatrixInverse |> should equal Matrix4x4.Identity
+            checkInverse result
+
+        [<Fact>]
+        let ``RotateX rotates around the x axis`` () =
+            let result = Transform.RotateX(60.0f)
+            checkArraysRoughlyMatch result.Matrix
+                                    (Matrix4x4(1.0f, 0.0f, 0.0f, 0.0f,
+                                               0.0f, 0.5f, -0.87f, 0.0f,
+                                               0.0f, 0.87f, 0.5f, 0.0f,
+                                               0.0f, 0.0f, 0.0f, 1.0f))
+            checkInverse result
+
+        [<Fact>]
+        let ``RotateY rotates around the y axis`` () =
+            let result = Transform.RotateY(60.0f)
+            checkArraysRoughlyMatch result.Matrix
+                                    (Matrix4x4(0.5f, 0.0f, 0.87f, 0.0f,
+                                               0.0f, 1.0f, 0.0f, 0.0f,
+                                               -0.87f, 0.0f, 0.5f, 0.0f,
+                                               0.0f, 0.0f, 0.0f, 1.0f))
+            checkInverse result
+
+        [<Fact>]
+        let ``RotateZ rotates around the z axis`` () =
+            let result = Transform.RotateZ(60.0f)
+            checkArraysRoughlyMatch result.Matrix
+                                    (Matrix4x4(0.5f, -0.87f, 0.0f, 0.0f,
+                                               0.87f, 0.5f, 0.0f, 0.0f,
+                                               0.0f, 0.0f, 1.0f, 0.0f,
+                                               0.0f, 0.0f, 0.0f, 1.0f))
+            checkInverse result
+
+        [<Fact>]
+        let ``Rotate rotates around an arbitrary axis by a given angle`` () =
+            let result = Transform.Rotate 60.0f (Vector(0.5f, 0.5f, 1.0f))
+            checkArraysRoughlyMatch result.Matrix
+                                    (Matrix4x4(0.58f, -0.62f,  0.52f, 0.0f,
+                                               0.79f,  0.58f, -0.19f, 0.0f,
+                                               -0.19f, 0.52f,  0.83f, 0.0f,
+                                               0.0f,   0.0f,   0.0f,  1.0f))
+            checkInverse result
+
+        [<Fact>]
+        let ``LookAt places a virtual camera in a scene`` () =
+            let result = Transform.LookAt(Point(1.0f, 2.0f, 3.0f),
+                                          Point(4.0f, 5.0f, 6.0f),
+                                          Vector.UnitY)
+            checkArraysRoughlyMatch result.Matrix
+                                    (Matrix4x4(0.71f,  0.0f,  -0.71f,  1.41f,
+                                               -0.41f, 0.82f, -0.41f,  0.0f,
+                                               0.58f,  0.58f,  0.58f, -3.46f,
+                                               0.0f,   0.0f,   0.0f,   1.0f))
+            checkInverse result
+
+        [<Fact>]
+        let ``Orthographic maps z values at the near plane to 0 and z values at the far plane to 1`` () =
+            let result = Transform.Orthographic(2.0f, 15.0f)
+            checkArraysRoughlyMatch result.Matrix
+                                    (Matrix4x4(1.0f, 0.0f, 0.0f, 0.0f,
+                                               0.0f, 1.0f, 0.0f, 0.0f,
+                                               0.0f, 0.0f, 0.08f, -0.15f,
+                                               0.0f, 0.0f, 0.0f, 1.0f))
+            checkInverse result
+
+        [<Fact>]
+        let ``Perspective projects points onto a viewing plane perpendicular to the z axis`` () =
+            let result = Transform.Perspective(60.0f, 2.0f, 15.0f)
+            checkArraysRoughlyMatch result.Matrix
+                                    (Matrix4x4(1.73f, 0.0f, 0.0f, 0.0f,
+                                               0.0f, 1.73f, 0.0f, 0.0f,
+                                               0.0f, 0.0f, 1.15f, -2.31f,
+                                               0.0f, 0.0f, 1.0f, 0.0f))
+            checkInverse result
+
+    type ``Given an orthographic transform`` () =
+        let transform = Transform.Orthographic(2.0f, 15.0f)
+
+        [<Theory>]
+        [<InlineData(0.0f, 0.0f,  1.0f, -0.08f)>]
+        [<InlineData(0.0f, 0.0f,  2.0f,  0.0f)>]
+        [<InlineData(0.0f, 0.0f, 15.0f,  1.0f)>]
+        [<InlineData(0.0f, 0.0f, 21.0f,  1.46f)>]
+        let ``when Transform is called, it transforms points correctly`` x y z expectedZ =
+            let result = transform.Transform(Point(x, y, z))
+            result.X |> should equal 0.0f
+            result.Y |> should equal 0.0f
+            result.Z |> should (equalWithin 0.01f) expectedZ
+
+    type ``Given a perspective transform`` () =
+        let transform = Transform.Perspective(60.0f, 2.0f, 15.0f)
+
+        [<Theory>]
+        [<InlineData(1.0f, 2.0f,  1.0f, 1.73f, 3.46f, -1.15f)>]
+        [<InlineData(1.0f, 2.0f,  2.0f, 0.87f, 1.73f,  0.0f)>]
+        [<InlineData(1.0f, 2.0f, 15.0f, 0.12f, 0.23f,  1.0f)>]
+        [<InlineData(1.0f, 2.0f, 21.0f, 0.08f, 0.16f,  1.04f)>]
+        let ``when Transform is called, it transforms points correctly`` x y z expectedX expectedY expectedZ =
+            let result = transform.Transform(Point(x, y, z))
+            result.X |> should (equalWithin 0.01f) expectedX
+            result.Y |> should (equalWithin 0.01f) expectedY
+            result.Z |> should (equalWithin 0.01f) expectedZ
+ 
+    type ``Given a transform without a scaling term`` () =
+        let transform = Transform.Scale(1.0f, 1.0f, 1.0f)
+
+        [<Fact>]
+        let ``when HasScale() is called, it returns false`` () =
+            transform.HasScale() |> should be False
+
+    type ``Given a transform with a scaling term`` () =
+        let transform = Transform.Scale(2.0f, 1.0f, 1.0f)
+
+        [<Fact>]
+        let ``when HasScale() is called, it returns true`` () =
+            transform.HasScale() |> should be True
+
+    type ``Given a transform that does not swap handedness`` () =
+        let transform = Transform.Scale(1.0f, 1.0f, 1.0f)
+
+        [<Fact>]
+        let ``when SwapsHandedness() is called, it returns false`` () =
+            transform.SwapsHandedness() |> should be False
+
+    type ``Given a transform that does swap handedness`` () =
+        let transform = Transform.Scale(1.0f, -1.0f, 1.0f)
+
+        [<Fact>]
+        let ``when SwapsHandedness() is called, it returns true`` () =
+            transform.SwapsHandedness() |> should be True

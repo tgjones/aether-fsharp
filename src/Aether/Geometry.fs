@@ -125,6 +125,15 @@ type Vector(x : single, y : single, z : single) =
     /// Vector(0.0f, 0.0f, 0.0f)
     static member Zero = Vector(0.0f, 0.0f, 0.0f)
 
+    /// Vector(1.0f, 0.0f, 0.0f)
+    static member UnitX = Vector(1.0f, 0.0f, 0.0f)
+
+    /// Vector(0.0f, 1.0f, 0.0f)
+    static member UnitY = Vector(0.0f, 1.0f, 0.0f)
+
+    /// Vector(0.0f, 0.0f, 1.0f)
+    static member UnitZ = Vector(0.0f, 0.0f, 1.0f)
+
     /// Converts a Vector to a Normal.
     member inline this.ToNormal () =
         Normal(this.X, this.Y, this.Z)
