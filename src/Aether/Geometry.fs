@@ -332,6 +332,19 @@ type RaySegment(origin : Point, direction : Vector,
     member this.Evaluate t =
         this.Origin + this.Direction * t
 
+    override this.Equals(other) =
+        match other with
+        | :? RaySegment as r2 -> this.Origin = r2.Origin && this.Direction = r2.Direction && this.MinT = r2.MinT && this.MaxT = r2.MaxT && this.Time = r2.Time
+        | _ -> false
+
+    override this.GetHashCode() =
+        let mutable hashCode = this.Origin.GetHashCode()
+        hashCode <- (hashCode * 397) ^^^ this.Direction.GetHashCode()
+        hashCode <- (hashCode * 397) ^^^ this.MinT.GetHashCode()
+        hashCode <- (hashCode * 397) ^^^ this.MaxT.GetHashCode()
+        hashCode <- (hashCode * 397) ^^^ this.Time.GetHashCode()
+        hashCode
+
     override this.ToString() =
         sprintf "{Origin:%O Direction:%O MinT:%f MaxT:%f}" this.Origin this.Direction this.MinT this.MaxT
 
@@ -440,4 +453,17 @@ type BBox(min, max) =
         if not (testDimension 0) then falseResult
         else if not (testDimension 1) then falseResult
         else if not (testDimension 2) then falseResult
-        else (Some(!t0), Some(!t1))    
+        else (Some(!t0), Some(!t1))
+
+    override this.Equals(other) =
+        match other with
+        | :? BBox as bb2 -> this.Min = bb2.Min && this.Max = bb2.Max
+        | _ -> false
+
+    override this.GetHashCode() =
+        let mutable hashCode = this.Min.GetHashCode()
+        hashCode <- (hashCode * 397) ^^^ this.Max.GetHashCode()
+        hashCode
+
+    override this.ToString() =
+        sprintf "{Min:%O Max:%O}" this.Min this.Max

@@ -265,6 +265,7 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
         let camToWorld = Matrix4x4(m)
         Transform(Matrix4x4.Inverse camToWorld, camToWorld)
 
+    /// Transforms the given point.
     member this.Transform(p : Point) =
         let x = p.X
         let y = p.Y
@@ -276,6 +277,7 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
         if wp = 1.0f then Point(xp, yp, zp)
         else Point(xp, yp, zp) / wp
 
+    /// Transforms the given bounding box.
     member this.Transform(b : BBox) =
         let mutable ret = BBox.FromPoint(this.Transform(Point(b.Min.X, b.Min.Y, b.Min.Z)))
         ret <- BBox.Union(ret, this.Transform(Point(b.Max.X, b.Min.Y, b.Min.Z)))
@@ -287,6 +289,7 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
         ret <- BBox.Union(ret, this.Transform(Point(b.Max.X, b.Max.Y, b.Max.Z)))
         ret
 
+    /// Transforms the given vector.
     member this.Transform(p : Vector) =
         let x = p.X
         let y = p.Y
@@ -295,14 +298,16 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
                matrix.[1,0]*x + matrix.[1,1]*y + matrix.[1,2]*z,
                matrix.[2,0]*x + matrix.[2,1]*y + matrix.[2,2]*z)
 
+    /// Transforms the given normal.
     member this.Transform(p : Normal) =
         let x = p.X
         let y = p.Y
         let z = p.Z
-        Vector(matrixInverse.[0,0]*x + matrixInverse.[1,0]*y + matrixInverse.[2,0]*z,
+        Normal(matrixInverse.[0,0]*x + matrixInverse.[1,0]*y + matrixInverse.[2,0]*z,
                matrixInverse.[0,1]*x + matrixInverse.[1,1]*y + matrixInverse.[2,1]*z,
                matrixInverse.[0,2]*x + matrixInverse.[1,2]*y + matrixInverse.[2,2]*z)
 
+    /// Transforms the given ray segment.
     member this.Transform(r : RaySegment) =
         RaySegment(this.Transform(r.Origin), this.Transform(r.Direction),
                    r.MinT, r.MaxT, r.Time)
@@ -350,11 +355,13 @@ type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
         let inline notOne x = x < 0.999f || x > 1.001f
         notOne la2 || notOne lb2 || notOne lc2
 
+    /// Creates a transform that is the inverse of the given transform.
     static member Inverse (t : Transform) =
         Transform(t.MatrixInverse, t.Matrix)
 
+    /// Creates a transform that is the transpose of the given transform.
     static member Transpose (t : Transform) =
-        Transform(Matrix4x4.Transpose t.Matrix, Matrix4x4.Transpose t.MatrixInverse)
+        Transform(Matrix4x4.Transpose(t.Matrix), Matrix4x4.Transpose(t.MatrixInverse))
 
     override this.Equals(other) =
         match other with

@@ -286,9 +286,58 @@ namespace ``Transforms - Transform``
         let ``when SwapsHandedness() is called, it returns false`` () =
             transform.SwapsHandedness() |> should be False
 
-    type ``Given a transform that does swap handedness`` () =
+    type ``Given a transform that swaps handedness`` () =
         let transform = Transform.Scale(1.0f, -1.0f, 1.0f)
 
         [<Fact>]
         let ``when SwapsHandedness() is called, it returns true`` () =
             transform.SwapsHandedness() |> should be True
+
+    type ``Given a translation transform and a rotation transform`` () =
+        let translateTransform = Transform.Translate(2.0f, 3.0f, 5.0f)
+        let rotateTransform    = Transform.RotateX(45.0f)
+
+        [<Fact>]
+        let ``they can transform points`` () =
+            translateTransform.Transform(Point(1.0f, 2.0f, 3.0f)) |> should equal (Point(3.0f, 5.0f, 8.0f))
+
+            let result = rotateTransform.Transform(Point(1.0f, 2.0f, 3.0f))
+            result.X |> should (equalWithin 0.01f) 1.0f
+            result.Y |> should (equalWithin 0.01f) -0.71f
+            result.Z |> should (equalWithin 0.01f) 3.54
+
+        [<Fact>]
+        let ``they can transform vectors`` () =
+            translateTransform.Transform(Vector(1.0f, 2.0f, 3.0f)) |> should equal (Vector(1.0f, 2.0f, 3.0f))
+            
+            let result = rotateTransform.Transform(Vector(1.0f, 2.0f, 3.0f))
+            result.X |> should (equalWithin 0.01f) 1.0f
+            result.Y |> should (equalWithin 0.01f) -0.71f
+            result.Z |> should (equalWithin 0.01f) 3.54
+
+        [<Fact>]
+        let ``they can transform normals`` () =
+            translateTransform.Transform(Normal(1.0f, 2.0f, 3.0f)) |> should equal (Normal(1.0f, 2.0f, 3.0f))
+
+            let result = rotateTransform.Transform(Normal(1.0f, 2.0f, 3.0f))
+            result.X |> should (equalWithin 0.01f) 1.0f
+            result.Y |> should (equalWithin 0.01f) -0.71f
+            result.Z |> should (equalWithin 0.01f) 3.54
+
+        [<Fact>]
+        let ``the translation transform can transform ray segments`` () =
+            let ray = RaySegment(Point(1.0f, 2.0f, 3.0f),
+                                 Vector.UnitZ,
+                                 0.0f, infinityf)
+            let expectedRay = RaySegment(Point(3.0f, 5.0f, 8.0f),
+                                         Vector.UnitZ,
+                                         0.0f, infinityf)
+            translateTransform.Transform(ray) |> should equal expectedRay
+
+        [<Fact>]
+        let ``the translation transform can transform bounding boxes`` () =
+            let bBox = BBox(Point(1.0f, 2.0f, 3.0f),
+                            Point(7.0f, 8.0f, 9.0f))
+            let expectedBBox = BBox(Point(3.0f, 5.0f, 8.0f),
+                                    Point(9.0f, 11.0f, 14.0f))
+            translateTransform.Transform(bBox) |> should equal expectedBBox
