@@ -48,15 +48,14 @@ type WhittedIntegrator(maxDepth) =
             // TODO: Compute emitted light if ray hit an area light source.
 
             // Add contribution of each light source.
-            let mutable result = Spectrum.Black
+            let mutable result = Spectrum.Black()
             for light in scene.Lights do
                 let (li, directionToLight, visibilityTester) = light.Evaluate p intersection.RayEpsilon ray.Time
 
                 if not(li.IsBlack()) then // Early exit for no light
                     let f = bsdf.Evaluate(wo, directionToLight)
                     if not(f.IsBlack()) && visibilityTester |> VisibilityTester.unoccluded scene then
-                        let color : RgbSpectrum = f * li
-                        result.Add(color * Vector.AbsDot(directionToLight, n))
+                        result.Add(f * li * Vector.AbsDot(directionToLight, n))
                             //* visibilityTester.Transmittance(scene);
 
             // TODO --_rayDepth; 
@@ -64,4 +63,4 @@ type WhittedIntegrator(maxDepth) =
         | None ->
             // Handle ray with no intersection
             // TODO: Iterate through lights to see what they contribute to this ray
-            Spectrum.Black
+            Spectrum.Black()

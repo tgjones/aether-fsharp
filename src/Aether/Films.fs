@@ -32,15 +32,11 @@ type WriteableBitmapFilm(bitmap : WriteableBitmap) =
 
     member this.Present () =
         let spectrumToColor (s : Spectrum) =
-            let xyz = Array.zeroCreate 3
-            s.ToXyz(xyz)
-
-            let rgb = Array.zeroCreate 3
-            SpectrumUtilities.xyzToRgb xyz rgb
-
-            Color.FromRgb(byte(rgb.[0] / 255.0f),
-                          byte(rgb.[1] / 255.0f),
-                          byte(rgb.[2] / 255.0f))
+            let xyz = s.ToXyz()
+            let rgb = Spectrum.XyzToRgb(xyz)
+            Color.FromRgb(byte(rgb.[0] * 255.0f),
+                          byte(rgb.[1] * 255.0f),
+                          byte(rgb.[2] * 255.0f))
 
         let mutable index = 0
         for y in 0..(yRes-1) do

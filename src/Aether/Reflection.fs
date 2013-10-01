@@ -76,7 +76,7 @@ type Bsdf(dg : DifferentialGeometry, geometricNormal) =
         let outgoing = worldToLocal(outgoingWorld)
         let incoming = worldToLocal(incomingWorld)
 
-        let mutable result = Spectrum.Black
+        let mutable result = Spectrum.Black()
         for bxdf in bxdfs do
             result <- result + (bxdf.Evaluate incoming outgoing)
         result

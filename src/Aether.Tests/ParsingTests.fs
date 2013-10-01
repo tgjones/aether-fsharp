@@ -72,26 +72,44 @@ type ``Given a full scene file`` () =
     [<Fact>]
     let ``when it is parsed, it should return the correct AST`` () =
         Parser.parse input |> should equal [
-            Ast.LookAt(Point(0.0f, 10.0f, 100.0f), Point(0.0f, -1.0f, 0.0f), Vector(0.0f, 1.0f, 0.0f))
-            Ast.StandardDirective(StandardDirectiveType.Camera, "perspective", Some([ ("fov", FloatValue(30.0f)) ]))
-            Ast.StandardDirective(StandardDirectiveType.PixelFilter, "mitchell", Some([ ("xwidth", FloatValue(2.0f)); ("ywidth", FloatValue(2.0f)) ]))
+            Ast.LookAt(Point(0.0f, 10.0f, 100.0f),
+                       Point(0.0f, -1.0f, 0.0f),
+                       Vector(0.0f, 1.0f, 0.0f))
+            Ast.StandardDirective(StandardDirectiveType.Camera, "perspective",
+                                  Some([ ("fov", FloatValue(30.0f)) ]))
+            Ast.StandardDirective(StandardDirectiveType.PixelFilter, "mitchell",
+                                  Some([ ("xwidth", FloatValue(2.0f)); 
+                                         ("ywidth", FloatValue(2.0f)) ]))
             Ast.StandardDirective(StandardDirectiveType.Sampler, "bestcandidate", None)
-            Ast.StandardDirective(StandardDirectiveType.Film, "image", Some([ ("filename", StringValue("simple.exr")); ("xresolution", IntegerValue(200)); ("yresolution", IntegerValue(200)) ]))
+            Ast.StandardDirective(StandardDirectiveType.Film, "image", 
+                                  Some([ ("filename", StringValue("simple.exr"));
+                                         ("xresolution", IntegerValue(200)); 
+                                         ("yresolution", IntegerValue(200)) ]))
 
             Ast.WorldBegin
             Ast.AttributeBegin
 
             Ast.CoordSysTransform("camera")
-            Ast.StandardDirective(StandardDirectiveType.LightSource, "distant", Some([ ("from", PointValue(Point.Zero)); ("to", PointValue(Point(0.0f, 0.0f, 1.0f))); ("L", SpectrumValue(RgbSpectrum([| 3.0f; 3.0f; 3.0f |]))) ]))
+            Ast.StandardDirective(StandardDirectiveType.LightSource, "distant",
+                                  Some([ ("from", PointValue(Point.Zero)); 
+                                         ("to", PointValue(Point(0.0f, 0.0f, 1.0f))); 
+                                         ("L", SpectrumValue(Spectrum(3.0f, 3.0f, 3.0f))) ]))
 
             Ast.AttributeEnd
 
             Ast.AttributeBegin
 
             Ast.Rotate(135.0f, Vector(1.0f, 0.0f, 0.0f))
-            Ast.Texture("checks", "spectrum", "checkerboard", Some([ ("uscale", FloatValue(4.0f)); ("vscale", FloatValue(4.0f)); ("tex1", SpectrumValue(RgbSpectrum([| 1.0f; 0.0f; 0.0f |]))); ("tex2", SpectrumValue(RgbSpectrum([| 0.0f; 0.0f; 1.0f |]))) ]))
-            Ast.StandardDirective(StandardDirectiveType.Material, "matte", Some([ ("Kd", StringValue("checks")) ]))
-            Ast.StandardDirective(StandardDirectiveType.Shape, "disk", Some([ ("radius", FloatValue(20.0f)); ("height", FloatValue(-1.0f)) ]))
+            Ast.Texture("checks", "spectrum", "checkerboard",
+                        Some([ ("uscale", FloatValue(4.0f)); 
+                               ("vscale", FloatValue(4.0f)); 
+                               ("tex1", SpectrumValue(Spectrum(1.0f, 0.0f, 0.0f))); 
+                               ("tex2", SpectrumValue(Spectrum(0.0f, 0.0f, 1.0f))) ]))
+            Ast.StandardDirective(StandardDirectiveType.Material, "matte",
+                                  Some([ ("Kd", StringValue("checks")) ]))
+            Ast.StandardDirective(StandardDirectiveType.Shape, "disk",
+                                  Some([ ("radius", FloatValue(20.0f)); 
+                                         ("height", FloatValue(-1.0f)) ]))
 
             Ast.AttributeEnd
             Ast.WorldEnd

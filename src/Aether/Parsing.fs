@@ -144,7 +144,7 @@ let getParam (typeAndName : string) (value : ParamValue) =
                         | _ -> value
                    | "rgb" ->
                         match value with
-                        | ArrayValue([ FloatValue(r); FloatValue(g); FloatValue(b) ]) -> SpectrumValue(RgbSpectrum([| r; g; b |]))
+                        | ArrayValue([ FloatValue(r); FloatValue(g); FloatValue(b) ]) -> SpectrumValue(Spectrum(r, g, b))
                         | _ -> value
                    | _ -> value
 

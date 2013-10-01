@@ -57,17 +57,4 @@ and [<AbstractClass>] RefinableShape(objectToWorld, reverseOrientation) =
     abstract Refine : unit -> Shape list
 
 
-type Plane(objectToWorld, reverseOrientation, point, normal) =
-    inherit IntersectableShape(objectToWorld, reverseOrientation)
-
-    member this.Point = point
-    member this.Normal = normal
-
-    override this.ObjectSpaceBounds =
-        raise (System.NotImplementedException())
-
-    override this.TryIntersect ray =
-        raise (System.NotImplementedException())
-
-
 type TextureCoordinate = { X : single; Y : single }

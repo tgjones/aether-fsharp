@@ -28,11 +28,11 @@ namespace Aether.Studio.Modules.DemoSceneViewer.Scenes
                 0, film.YRes);
 
             var shape = new Sphere(Transform.Translate(Vector.Zero), false, 5, -4.9f, 4.9f, 360.0f);
-            var primitive = new GeometricPrimitive(shape, new MatteMaterial(new RgbSpectrum(new [] { 0.0f, 1.0f, 0.0f}))); // Green
+            var primitive = new GeometricPrimitive(shape, new MatteMaterial(new Spectrum(0.0f, 1.0f, 0.0f))); // Green
 
             var lights = new List<Light>();
             lights.Add(new DistantLight(Transform.Translate(Vector.Zero),
-                new RgbSpectrum(new[] { 1.0f, 1.0f, 1.0f }), new Vector(0, -1, 0))); // White.
+                new Spectrum(1.0f, 1.0f, 1.0f), new Vector(0, -1, 0))); // White.
 
             return new Scene(camera, surfaceIntegrator, sampler, primitive, lights);
 		}
