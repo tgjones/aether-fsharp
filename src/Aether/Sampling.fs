@@ -1,8 +1,8 @@
 ﻿namespace Aether.Sampling
 
 open System.Collections.Generic
+open Aether
 open Aether.Math
-open Aether.MonteCarlo
 
 type ICameraSample =
     abstract ImageX : single
@@ -48,12 +48,12 @@ type StratifiedSampler(xStart, xEnd, yStart, yEnd,
         seq {
             while !yPos < yEnd do
                 // Generate stratified samples, and shift image samples to correct coordinates.
-                let imageSamples = stratifiedSample2D xPixelSamples yPixelSamples rng jitterSamples
+                let imageSamples = MonteCarlo.stratifiedSample2D xPixelSamples yPixelSamples rng jitterSamples
                                    |> List.map (fun (x, y) -> (x + single(!xPos), y + single(!yPos)))
-                let lensSamples  = stratifiedSample2D xPixelSamples yPixelSamples rng jitterSamples
-                                   |> shuffle rng // Decorrelate sample dimensions.
-                let timeSamples  = stratifiedSample1D (xPixelSamples * yPixelSamples) rng jitterSamples
-                                   |> shuffle rng // Decorrelate sample dimensions.
+                let lensSamples  = MonteCarlo.stratifiedSample2D xPixelSamples yPixelSamples rng jitterSamples
+                                   |> List.shuffle rng // Decorrelate sample dimensions.
+                let timeSamples  = MonteCarlo.stratifiedSample1D (xPixelSamples * yPixelSamples) rng jitterSamples
+                                   |> List.shuffle rng // Decorrelate sample dimensions.
 
                 for i = 0 to numSamples - 1 do
                     let (imageX, imageY) = List.nth imageSamples i

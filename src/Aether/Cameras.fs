@@ -3,7 +3,6 @@
 open Aether.Math
 open Aether.Geometry
 open Aether.Transforms
-open Aether.MonteCarlo
 open Aether.Sampling
 open Aether.Films
 
