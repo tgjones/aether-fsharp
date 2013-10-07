@@ -50,10 +50,12 @@
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <ItemGroup>
     <None Include="packages.config" />
+    <Compile Include="TestHelpers.fs" />
     <Compile Include="MathTests.fs" />
     <Compile Include="SpectrumTests.fs" />
     <Compile Include="GeometryTests.fs" />
     <Compile Include="TransformsTests.fs" />
+    <Compile Include="MonteCarloTests.fs" />
     <Compile Include="ShapesTests.fs" />
     <Compile Include="FiltersTests.fs" />
     <Compile Include="SamplingTests.fs" />

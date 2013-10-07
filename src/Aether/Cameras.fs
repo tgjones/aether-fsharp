@@ -14,7 +14,7 @@ type Camera(cam2World : Transform,
             film : Film) =
     member this.Film = film
 
-    abstract GenerateRay : Sample -> RaySegment
+    abstract GenerateRay : ICameraSample -> RaySegment
 
 
 [<AbstractClass>]

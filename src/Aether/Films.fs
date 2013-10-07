@@ -28,7 +28,7 @@ type WriteableBitmapFilm(bitmap : WriteableBitmap) =
     let surface = Array2D.zeroCreate xRes yRes
 
     override this.AddSample sample c =
-        surface.[sample.ImageX, sample.ImageY] <- c
+        surface.[int(sample.ImageX), int(sample.ImageY)] <- c
 
     member this.Present () =
         let spectrumToColor (s : Spectrum) =

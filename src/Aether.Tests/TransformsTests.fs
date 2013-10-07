@@ -1,20 +1,8 @@
-﻿namespace TransformsTests
-    open FsUnit.Xunit
-    open Aether.Transforms
-
-    [<AutoOpen>]
-    module MatrixMatchers =
-        let checkArraysRoughlyMatch (m1 : Matrix4x4) (m2 : Matrix4x4) =
-            for i in 0..3 do
-                for j in 0..3 do
-                    m1.[i,j] |> should (equalWithin 0.01f) m2.[i,j]
-
-namespace ``Transforms - Matrix4x4``
+﻿namespace ``Transforms - Matrix4x4``
     open Xunit
     open Xunit.Extensions
     open FsUnit.Xunit
     open Aether.Transforms
-    open TransformsTests
 
     type ``Given an array of values`` () =
         let values = array2D [ [ 0.0f; 1.0f; 2.0f; 3.0f ]
@@ -83,11 +71,11 @@ namespace ``Transforms - Matrix4x4``
         [<Fact>]
         let ``Inverse calculates the matrix inverse`` () =
             let inverse = Matrix4x4.Inverse matrix
-            checkArraysRoughlyMatch inverse (Matrix4x4(-0.08f, -0.45f, -0.08f,  0.39f,
-                                                       0.09f,  -0.32f, -0.10f,  0.25f,
-                                                       -0.04f, -0.34f, -0.20f,  0.38f,
-                                                       0.06f,   0.88f,  0.31f, -0.77f))
-            checkArraysRoughlyMatch (Matrix4x4.Mul matrix inverse) Matrix4x4.Identity
+            checkMatricesRoughlyMatch inverse (Matrix4x4(-0.08f, -0.45f, -0.08f,  0.39f,
+                                                         0.09f,  -0.32f, -0.10f,  0.25f,
+                                                         -0.04f, -0.34f, -0.20f,  0.38f,
+                                                         0.06f,   0.88f,  0.31f, -0.77f))
+            checkMatricesRoughlyMatch (Matrix4x4.Mul matrix inverse) Matrix4x4.Identity
 
 
 namespace ``Transforms - Transform``
@@ -96,7 +84,6 @@ namespace ``Transforms - Transform``
     open FsUnit.Xunit
     open Aether.Geometry
     open Aether.Transforms
-    open TransformsTests
 
     type ``Given a matrix and its inverse`` () =
         let matrix = Matrix4x4(3.0f,  11.0f,  4.0f,  7.0f,
@@ -141,7 +128,7 @@ namespace ``Transforms - Transform``
     type ``Factory methods`` () =
 
         let checkInverse (t : Transform) =
-            checkArraysRoughlyMatch (Matrix4x4.Mul t.Matrix t.MatrixInverse) Matrix4x4.Identity
+            checkMatricesRoughlyMatch (Matrix4x4.Mul t.Matrix t.MatrixInverse) Matrix4x4.Identity
         
         [<Fact>]
         let ``Translate creates a translation transform`` () =
@@ -168,41 +155,41 @@ namespace ``Transforms - Transform``
         [<Fact>]
         let ``RotateX rotates around the x axis`` () =
             let result = Transform.RotateX(60.0f)
-            checkArraysRoughlyMatch result.Matrix
-                                    (Matrix4x4(1.0f, 0.0f, 0.0f, 0.0f,
-                                               0.0f, 0.5f, -0.87f, 0.0f,
-                                               0.0f, 0.87f, 0.5f, 0.0f,
-                                               0.0f, 0.0f, 0.0f, 1.0f))
+            checkMatricesRoughlyMatch result.Matrix
+                                      (Matrix4x4(1.0f, 0.0f, 0.0f, 0.0f,
+                                                 0.0f, 0.5f, -0.87f, 0.0f,
+                                                 0.0f, 0.87f, 0.5f, 0.0f,
+                                                 0.0f, 0.0f, 0.0f, 1.0f))
             checkInverse result
 
         [<Fact>]
         let ``RotateY rotates around the y axis`` () =
             let result = Transform.RotateY(60.0f)
-            checkArraysRoughlyMatch result.Matrix
-                                    (Matrix4x4(0.5f, 0.0f, 0.87f, 0.0f,
-                                               0.0f, 1.0f, 0.0f, 0.0f,
-                                               -0.87f, 0.0f, 0.5f, 0.0f,
-                                               0.0f, 0.0f, 0.0f, 1.0f))
+            checkMatricesRoughlyMatch result.Matrix
+                                      (Matrix4x4(0.5f, 0.0f, 0.87f, 0.0f,
+                                                 0.0f, 1.0f, 0.0f, 0.0f,
+                                                 -0.87f, 0.0f, 0.5f, 0.0f,
+                                                 0.0f, 0.0f, 0.0f, 1.0f))
             checkInverse result
 
         [<Fact>]
         let ``RotateZ rotates around the z axis`` () =
             let result = Transform.RotateZ(60.0f)
-            checkArraysRoughlyMatch result.Matrix
-                                    (Matrix4x4(0.5f, -0.87f, 0.0f, 0.0f,
-                                               0.87f, 0.5f, 0.0f, 0.0f,
-                                               0.0f, 0.0f, 1.0f, 0.0f,
-                                               0.0f, 0.0f, 0.0f, 1.0f))
+            checkMatricesRoughlyMatch result.Matrix
+                                      (Matrix4x4(0.5f, -0.87f, 0.0f, 0.0f,
+                                                 0.87f, 0.5f, 0.0f, 0.0f,
+                                                 0.0f, 0.0f, 1.0f, 0.0f,
+                                                 0.0f, 0.0f, 0.0f, 1.0f))
             checkInverse result
 
         [<Fact>]
         let ``Rotate rotates around an arbitrary axis by a given angle`` () =
             let result = Transform.Rotate 60.0f (Vector(0.5f, 0.5f, 1.0f))
-            checkArraysRoughlyMatch result.Matrix
-                                    (Matrix4x4(0.58f, -0.62f,  0.52f, 0.0f,
-                                               0.79f,  0.58f, -0.19f, 0.0f,
-                                               -0.19f, 0.52f,  0.83f, 0.0f,
-                                               0.0f,   0.0f,   0.0f,  1.0f))
+            checkMatricesRoughlyMatch result.Matrix
+                                      (Matrix4x4(0.58f, -0.62f,  0.52f, 0.0f,
+                                                 0.79f,  0.58f, -0.19f, 0.0f,
+                                                 -0.19f, 0.52f,  0.83f, 0.0f,
+                                                 0.0f,   0.0f,   0.0f,  1.0f))
             checkInverse result
 
         [<Fact>]
@@ -210,31 +197,31 @@ namespace ``Transforms - Transform``
             let result = Transform.LookAt(Point(1.0f, 2.0f, 3.0f),
                                           Point(4.0f, 5.0f, 6.0f),
                                           Vector.UnitY)
-            checkArraysRoughlyMatch result.Matrix
-                                    (Matrix4x4(0.71f,  0.0f,  -0.71f,  1.41f,
-                                               -0.41f, 0.82f, -0.41f,  0.0f,
-                                               0.58f,  0.58f,  0.58f, -3.46f,
-                                               0.0f,   0.0f,   0.0f,   1.0f))
+            checkMatricesRoughlyMatch result.Matrix
+                                      (Matrix4x4(0.71f,  0.0f,  -0.71f,  1.41f,
+                                                 -0.41f, 0.82f, -0.41f,  0.0f,
+                                                 0.58f,  0.58f,  0.58f, -3.46f,
+                                                 0.0f,   0.0f,   0.0f,   1.0f))
             checkInverse result
 
         [<Fact>]
         let ``Orthographic maps z values at the near plane to 0 and z values at the far plane to 1`` () =
             let result = Transform.Orthographic(2.0f, 15.0f)
-            checkArraysRoughlyMatch result.Matrix
-                                    (Matrix4x4(1.0f, 0.0f, 0.0f, 0.0f,
-                                               0.0f, 1.0f, 0.0f, 0.0f,
-                                               0.0f, 0.0f, 0.08f, -0.15f,
-                                               0.0f, 0.0f, 0.0f, 1.0f))
+            checkMatricesRoughlyMatch result.Matrix
+                                      (Matrix4x4(1.0f, 0.0f, 0.0f, 0.0f,
+                                                 0.0f, 1.0f, 0.0f, 0.0f,
+                                                 0.0f, 0.0f, 0.08f, -0.15f,
+                                                 0.0f, 0.0f, 0.0f, 1.0f))
             checkInverse result
 
         [<Fact>]
         let ``Perspective projects points onto a viewing plane perpendicular to the z axis`` () =
             let result = Transform.Perspective(60.0f, 2.0f, 15.0f)
-            checkArraysRoughlyMatch result.Matrix
-                                    (Matrix4x4(1.73f, 0.0f, 0.0f, 0.0f,
-                                               0.0f, 1.73f, 0.0f, 0.0f,
-                                               0.0f, 0.0f, 1.15f, -2.31f,
-                                               0.0f, 0.0f, 1.0f, 0.0f))
+            checkMatricesRoughlyMatch result.Matrix
+                                      (Matrix4x4(1.73f, 0.0f, 0.0f, 0.0f,
+                                                 0.0f, 1.73f, 0.0f, 0.0f,
+                                                 0.0f, 0.0f, 1.15f, -2.31f,
+                                                 0.0f, 0.0f, 1.0f, 0.0f))
             checkInverse result
 
     type ``Given an orthographic transform`` () =

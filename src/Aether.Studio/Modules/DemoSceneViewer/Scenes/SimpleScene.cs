@@ -23,9 +23,12 @@ namespace Aether.Studio.Modules.DemoSceneViewer.Scenes
 
 			var surfaceIntegrator = new WhittedIntegrator(6);
 
-			var sampler = new RegularSampler(
+			var sampler = new StratifiedSampler(
 				0, film.XRes,
-                0, film.YRes);
+                0, film.YRes,
+                0, 1,
+                false,
+                0.0f, 1.0f);
 
             var shape = new Sphere(Transform.Translate(Vector.Zero), false, 5, -4.9f, 4.9f, 360.0f);
             var primitive = new GeometricPrimitive(shape, new MatteMaterial(new Spectrum(0.0f, 1.0f, 0.0f))); // Green

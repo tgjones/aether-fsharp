@@ -79,3 +79,10 @@ module MathUtility =
             let mutable t1 = c / q
             if t0 > t1 then swap &t0 &t1
             (Some(t0), Some(t1))
+
+
+[<AutoOpen>]
+module ExtensionMethods =
+    type System.Random with
+        member this.NextSingle() =
+            single(this.NextDouble())

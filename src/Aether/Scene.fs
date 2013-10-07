@@ -21,7 +21,8 @@ type Scene(camera : Camera,
         member this.TryIntersect ray = primitive.TryIntersect ray
         
     member this.Render () =
-        for sample in sampler.GetSamples() do
+        let rng = System.Random(1000)
+        for sample in sampler.GetSamples(rng) do
             let ray = camera.GenerateRay sample
 
             let li ray sample = surfaceIntegrator.Li this ray sample
