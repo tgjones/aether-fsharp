@@ -16,6 +16,9 @@ type Filter(xWidth, yWidth) =
     /// centre.
     abstract Evaluate : single -> single -> single
 
+    member this.XWidth = xWidth
+    member this.YWidth = yWidth
+
     static member CalculateInverses xWidth yWidth =
         (1.0f / xWidth, 1.0f / yWidth)
 

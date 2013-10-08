@@ -48,6 +48,10 @@ module MathUtility =
     let inline floor2int value =
         int(floor value)
 
+    /// Ceiling of the given number, cast to an integer.
+    let inline ceil2int value =
+        int(ceil value)
+
     /// Binary logarithm of the given number, floored to an integer.
     let inline log2int value =
         floor2int (log2 value)

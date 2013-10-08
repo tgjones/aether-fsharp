@@ -23,11 +23,8 @@ namespace Aether.Studio.Modules.DemoSceneViewer.ViewModels
 
 		protected override void Draw()
 		{
-			var film = new WriteableBitmapFilm(OutputBitmap);
-			var scene = _scene.CreateScene(film);
+			var scene = _scene.CreateScene(OutputBitmap);
 			scene.Render();
-
-			film.Present();
 		}
 	}
 }

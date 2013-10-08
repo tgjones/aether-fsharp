@@ -31,3 +31,5 @@ type Scene(camera : Camera,
             let color = li ray sample
 
             camera.Film.AddSample sample color
+
+        camera.Film.WriteImage 0.0f
