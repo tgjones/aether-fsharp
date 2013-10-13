@@ -29,6 +29,11 @@ type BoxFilter(xWidth, yWidth) =
 
     override this.Evaluate x y = 1.0f
 
+    static member Create (parameters : Aether.Parsing.Ast.ParamSet) =
+        let xWidth = parameters.FindSingle "xwidth" 0.5f
+        let yWidth = parameters.FindSingle "ywidth" 0.5f
+        BoxFilter(xWidth, yWidth)
+
 
 /// The gaussian filter is better than the box and triangle filters. It 
 /// evaluates to 0 at the extents. Between those limits, it falls off using
@@ -44,6 +49,12 @@ type GaussianFilter(xWidth, yWidth, alpha) =
 
     override this.Evaluate x y =
         (gaussian x expX) * (gaussian y expY)
+
+    static member Create (parameters : Aether.Parsing.Ast.ParamSet) =
+        let xWidth = parameters.FindSingle "xwidth" 2.0f
+        let yWidth = parameters.FindSingle "ywidth" 2.0f
+        let alpha = parameters.FindSingle "alpha" 2.0f
+        GaussianFilter(xWidth, yWidth, alpha)
 
 
 /// The Mitchell filter was created by Mitchell and Netravali (1988). It 
@@ -68,6 +79,13 @@ type MitchellFilter(xWidth, yWidth, b, c) =
     override this.Evaluate x y =
         (mitchell1D (x * inverseXWidth)) * (mitchell1D (y * inverseYWidth))
 
+    static member Create (parameters : Aether.Parsing.Ast.ParamSet) =
+        let xWidth = parameters.FindSingle "xwidth" 2.0f
+        let yWidth = parameters.FindSingle "ywidth" 2.0f
+        let b = parameters.FindSingle "B" (1.0f / 3.0f)
+        let c = parameters.FindSingle "C" (1.0f / 3.0f)
+        MitchellFilter(xWidth, yWidth, b, c)
+
 
 /// The Lanczos filter is based on the sinc function. The tau parameter controls
 /// how many sinc function cycles are evaluated before it is clamped to a value
@@ -90,6 +108,12 @@ type LanczosSincFilter(xWidth, yWidth, tau) =
     override this.Evaluate x y =
         sinc1D(x * inverseXWidth) * sinc1D(y * inverseYWidth)
 
+    static member Create (parameters : Aether.Parsing.Ast.ParamSet) =
+        let xWidth = parameters.FindSingle "xwidth" 4.0f
+        let yWidth = parameters.FindSingle "ywidth" 4.0f
+        let tau = parameters.FindSingle "tau" 3.0f
+        LanczosSincFilter(xWidth, yWidth, tau)
+
 
 /// The triangle filter is slightly better than the box filter. Samples at the
 /// centre point have a weight of 1, falling off linearly to the square extent
@@ -100,3 +124,8 @@ type TriangleFilter(xWidth, yWidth) =
     override this.Evaluate x y =
         Math.Max(0.0f, xWidth - Math.Abs(x)) *
         Math.Max(0.0f, yWidth - Math.Abs(y))
+
+    static member Create (parameters : Aether.Parsing.Ast.ParamSet) =
+        let xWidth = parameters.FindSingle "xwidth" 2.0f
+        let yWidth = parameters.FindSingle "ywidth" 2.0f
+        TriangleFilter(xWidth, yWidth)

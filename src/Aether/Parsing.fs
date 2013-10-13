@@ -40,6 +40,9 @@ module Ast =
         member this.FindInt name defaultValue =
             this.Find<int>(name, defaultValue)
 
+        member this.FindSingle name defaultValue =
+            this.Find<single>(name, defaultValue)
+
         member this.FindSingles name =
             this.Find<single list>(name, [])
 
