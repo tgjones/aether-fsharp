@@ -5,11 +5,13 @@ open System.Windows.Media
 open System.Windows.Media.Imaging
 open Aether
 open Aether.Math
+open Aether.Parsing
 open Aether.Sampling
 open Aether.Filters
 
 
-type FilmExtent = FilmExtent of XStart : int * XEnd : int * YStart : int * YEnd : int
+type FilmExtent = { XStart : int; XEnd : int;
+                    YStart : int; YEnd : int }
 
 
 [<AbstractClass>]
@@ -54,17 +56,21 @@ type private Pixel =
               SplatXyz = Array.zeroCreate 3 }
 
 
-type ImageFilm(bitmap : WriteableBitmap, filter : Filter, cropWindow : single[]) =
+type CropWindow = { XMin : single; XMax : single;
+                    YMin : single; YMax : single }
+
+
+type ImageFilm(bitmap : WriteableBitmap, filter : Filter, cropWindow : CropWindow) =
     inherit Film(bitmap.PixelWidth, bitmap.PixelHeight)
 
     let xRes = bitmap.PixelWidth
     let yRes = bitmap.PixelHeight
 
     // Compute film image extent.
-    let xPixelStart = ceil2int (single(xRes) * cropWindow.[0])
-    let xPixelCount = max 1 ((ceil2int (single(xRes) * cropWindow.[1])) - xPixelStart)
-    let yPixelStart = ceil2int (single(yRes) * cropWindow.[2])
-    let yPixelCount = max 1 ((ceil2int (single(yRes) * cropWindow.[3])) - yPixelStart)
+    let xPixelStart = ceil2int (single(xRes) * cropWindow.XMin)
+    let xPixelCount = max 1 ((ceil2int (single(xRes) * cropWindow.XMax)) - xPixelStart)
+    let yPixelStart = ceil2int (single(yRes) * cropWindow.YMin)
+    let yPixelCount = max 1 ((ceil2int (single(yRes) * cropWindow.YMax)) - yPixelStart)
 
     // Allocate film image storage.
     let pixels = Array2D.init xPixelCount yPixelCount (fun x y -> Pixel())
@@ -131,11 +137,11 @@ type ImageFilm(bitmap : WriteableBitmap, filter : Filter, cropWindow : single[])
         let xEnd   = ceil2int  (single(xPixelStart) + 0.5f + single(xPixelCount) + filter.XWidth)
         let yStart = floor2int (single(yPixelStart) + 0.5f - filter.YWidth)
         let yEnd   = ceil2int  (single(yPixelStart) + 0.5f + single(yPixelCount) + filter.YWidth)
-        FilmExtent(xStart, xEnd, yStart, yEnd)
+        { XStart = xStart; XEnd = xEnd; YStart = yStart; YEnd = yEnd }
 
     override this.GetPixelExtent() =
-        FilmExtent(xPixelStart, xPixelStart + xPixelCount,
-                   yPixelStart, yPixelStart + yPixelCount)
+        { XStart = xPixelStart; XEnd = xPixelStart + xPixelCount;
+          YStart = yPixelStart; YEnd = yPixelStart + yPixelCount }
 
     override this.WriteImage splatScale =
         // Convert image to RGB and compute final pixel values.
@@ -171,3 +177,19 @@ type ImageFilm(bitmap : WriteableBitmap, filter : Filter, cropWindow : single[])
     override this.UpdateDisplay x0 y0 x1 y1 splatScale =
         //bitmap.Invalidate()
         ()
+
+    static member CreateImageFilm (parameters : ParamSet) (filter : Filter) =
+        //let filename = parameters.FindOneString "filename" ""
+        let xres = parameters.FindInt "xresolution" 640
+        let yres = parameters.FindInt "yresolution" 480
+        let cr = parameters.FindSingles("cropwindow")
+        let cropWindow =
+            if List.length cr = 4 then
+                { XMin = clamp (min cr.[0] cr.[1]) 0.0f 1.0f;
+                  XMax = clamp (max cr.[0] cr.[1]) 0.0f 1.0f;
+                  YMin = clamp (min cr.[2] cr.[3]) 0.0f 1.0f;
+                  YMax = clamp (max cr.[2] cr.[3]) 0.0f 1.0f; }
+            else
+                { XMin = 0.0f; XMax = 1.0f; YMin = 0.0f; YMax = 1.0f }
+        let bitmap = WriteableBitmap(xres, yres, 96.0, 96.0, PixelFormats.Pbgra32, null)
+        ImageFilm(bitmap, filter, cropWindow)

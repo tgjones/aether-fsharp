@@ -54,11 +54,13 @@
     <Compile Include="Spectrum.fs" />
     <Compile Include="Geometry.fs" />
     <Compile Include="Transform.fs" />
+    <Compile Include="ParsingUtilities.fs" />
+    <Compile Include="Parsing.fs" />
     <Compile Include="MonteCarlo.fs" />
     <Compile Include="Lights.fs" />
     <Compile Include="Shapes/Shape.fs" />
     <Compile Include="Shapes/Sphere.fs" />
-	<Compile Include="Shapes/TriangleMesh.fs" />
+    <Compile Include="Shapes/TriangleMesh.fs" />
     <Compile Include="Reflection.fs" />
     <Compile Include="Materials.fs" />
     <Compile Include="Primitives.fs" />
@@ -68,8 +70,6 @@
     <Compile Include="Films.fs" />
     <Compile Include="Cameras.fs" />
     <Compile Include="Scene.fs" />
-    <Compile Include="ParsingUtilities.fs" />
-    <Compile Include="Parsing.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">

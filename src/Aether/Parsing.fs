@@ -12,20 +12,38 @@ module Ast =
     
     type SceneFile = Directive list
 
-    and ParamSet = Param list
+    and ParamSet =
+        | ParamSet of Param list
 
-    and Param = string * ParamValue
+        member private this.Find(name : string, defaultValue : 'a) =
+            let findValue (parameter : Param) =
+                match parameter with
+                | (name, v) when (v :? 'a = true) -> Some(v :?> 'a)
+                | _ -> None
 
-    and ParamValue =
-        | IntegerValue of int
-        | FloatValue of single
-        | PointValue of Point
-        | VectorValue of Vector
-        | NormalValue of Normal
-        | SpectrumValue of Spectrum
-        | BoolValue of bool
-        | StringValue of string
-        | ArrayValue of ParamValue list
+            match this with
+            | ParamSet(parameters) ->
+                match List.tryPick findValue parameters with
+                | Some(v) -> v
+                | _ -> defaultValue
+
+        member private this.FindMany name findFunc =
+            match this with
+            | ParamSet(parameters) ->
+                match List.tryPick findFunc parameters with
+                | Some(v) -> v
+                | _ -> []
+
+        member this.FindString name defaultValue =
+            this.Find<string>(name, defaultValue)
+
+        member this.FindInt name defaultValue =
+            this.Find<int>(name, defaultValue)
+
+        member this.FindSingles name =
+            this.Find<single list>(name, [])
+
+    and Param = string * obj
 
     and Directive =
         | StandardDirective of directiveType : StandardDirectiveType * implementationType : string * parameters : ParamSet option
@@ -64,10 +82,10 @@ let sceneFile             = nonTerminal<SceneFile>()
 let directiveList         = nonTerminal<Directive list>()
 let directive             = nonTerminal<Directive>()
 let standardDirectiveType = nonTerminal<StandardDirectiveType>()
-let paramSet              = nonTerminal<ParamSet>()
+let paramSet              = nonTerminal<Param list>()
 let param                 = nonTerminal<Param>()
-let paramValueList        = nonTerminal<ParamValue list>()
-let paramValue            = nonTerminal<ParamValue>()
+let paramValueList        = nonTerminal<obj list>()
+let paramValue            = nonTerminal<obj>()
 let point3D               = nonTerminal<Point>()
 let vector3D              = nonTerminal<Vector>()
 let matrix3D              = nonTerminal<Matrix4x4>()
@@ -91,9 +109,9 @@ sceneFile.AddProduction(directiveList).SetReduceToFirst()
 directiveList.AddProduction(directiveList, directive).SetReduceFunction (fun a b -> a @ [b])
 directiveList.AddProduction(directive).SetReduceFunction (fun a -> [a])
 
-directive.AddProduction(standardDirectiveType, quotedString, paramSet).SetReduceFunction (fun a b c -> StandardDirective(a, b, Some(c)))
+directive.AddProduction(standardDirectiveType, quotedString, paramSet).SetReduceFunction (fun a b c -> StandardDirective(a, b, Some(ParamSet(c))))
 directive.AddProduction(standardDirectiveType, quotedString).SetReduceFunction (fun a b -> StandardDirective(a, b, None))
-directive.AddProduction(terminal "Texture", quotedString, quotedString, quotedString, paramSet).SetReduceFunction (fun _ b c d e -> Texture(b, c, d, Some(e)))
+directive.AddProduction(terminal "Texture", quotedString, quotedString, quotedString, paramSet).SetReduceFunction (fun _ b c d e -> Texture(b, c, d, Some(ParamSet(e))))
 directive.AddProduction(terminal "Texture", quotedString, quotedString, quotedString).SetReduceFunction (fun _ b c d -> Texture(b, c, d, None))
 directive.AddProduction(terminal "Identity").SetReduceFunction (fun _ -> Identity)
 directive.AddProduction(terminal "Translate", vector3D).SetReduceFunction (fun _ b -> Translate(b))
@@ -120,38 +138,36 @@ standardDirectiveType.AddProduction(terminal "Shape")      .SetReduceFunction (f
 paramSet.AddProduction(paramSet, param).SetReduceFunction (fun a b -> a @ [b])
 paramSet.AddProduction(param).SetReduceFunction (fun a -> [a])
 
-let getParam (typeAndName : string) (value : ParamValue) =
+let getParam (typeAndName : string) (value : obj) =
     let splitNameAndType = typeAndName.Split(' ')
     let paramType = splitNameAndType.[0]
     let paramName = splitNameAndType.[1]
 
-    let newValue = match paramType with
-                   | "integer" ->
-                        match value with
-                        | FloatValue(i) -> IntegerValue(int i)
-                        | _ -> value
-                   | "point" ->
-                        match value with
-                        | ArrayValue([ FloatValue(x); FloatValue(y); FloatValue(z) ]) -> PointValue(Point(x, y, z))
-                        | _ -> value
-                   | "vector" ->
-                        match value with
-                        | ArrayValue([ FloatValue(x); FloatValue(y); FloatValue(z) ]) -> VectorValue(Vector(x, y, z))
-                        | _ -> value
-                   | "normal" ->
-                        match value with
-                        | ArrayValue([ FloatValue(x); FloatValue(y); FloatValue(z) ]) -> NormalValue(Normal(x, y, z))
-                        | _ -> value
-                   | "rgb" ->
-                        match value with
-                        | ArrayValue([ FloatValue(r); FloatValue(g); FloatValue(b) ]) -> SpectrumValue(Spectrum(r, g, b))
-                        | _ -> value
-                   | _ -> value
+    let getThreeSingles() =
+        let list = unbox<obj list> value
+        match list with
+        | [ x; y; z ] when x :? single = true && y :? single = true && z :? single = true ->
+            (unbox x, unbox y, unbox z)
+        | _ -> failwith "Expected three floats in an array."
+
+    let newValue =
+        match paramType with
+        | "integer" ->
+            match value with
+            | :? single as i -> box (int i)
+            | _ -> value
+        | "point"  -> box (Point(getThreeSingles()))
+        | "vector" -> box (Vector(getThreeSingles()))
+        | "normal" -> box (Normal(getThreeSingles()))
+        | "rgb"    ->
+            let (r, g, b) = getThreeSingles()
+            box (Spectrum([| r; g; b |]))
+        | _ -> value
 
     (paramName, newValue)
 
-let getParamList typeAndName (value : ParamValue list) =
-    let newValue = if List.length value = 1 then List.head value else ArrayValue(value)
+let getParamList typeAndName (value : obj list) =
+    let newValue = if List.length value = 1 then List.head value else box value
     getParam typeAndName newValue
 
 param.AddProduction(quotedString, terminal "\[", paramValueList, terminal "\]").SetReduceFunction (fun a _ c _ -> getParamList a c)
@@ -160,8 +176,8 @@ param.AddProduction(quotedString, paramValue).SetReduceFunction (fun a b -> getP
 paramValueList.AddProduction(paramValueList, paramValue).SetReduceFunction (fun a b -> a @ [b])
 paramValueList.AddProduction(paramValue).SetReduceFunction (fun a -> [a])
 
-paramValue.AddProduction(floatOrInt).SetReduceFunction (fun a -> FloatValue(a))
-paramValue.AddProduction(quotedString).SetReduceFunction (fun a -> StringValue(a))
+paramValue.AddProduction(floatOrInt).SetReduceFunction (fun a -> box a)
+paramValue.AddProduction(quotedString).SetReduceFunction (fun a -> box a)
 
 point3D.AddProduction(floatOrInt, floatOrInt, floatOrInt).SetReduceFunction (fun a b c -> Point(a, b, c))
 vector3D.AddProduction(floatOrInt, floatOrInt, floatOrInt).SetReduceFunction (fun a b c -> Vector(a, b, c))

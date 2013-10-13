@@ -28,14 +28,14 @@ type ``Given a Film directive`` () =
     let ``when it is parsed, it should return the correct AST`` () =
         Parser.parse input |> should equal [
             Ast.StandardDirective(StandardDirectiveType.Film, "image",
-                Some([ ("filename", StringValue("simple.exr"))
-                       ("xresolution", IntegerValue(200))
-                       ("yresolution", IntegerValue(200))
-                       ("cropwindow", (ArrayValue([FloatValue(0.2f)
-                                                   FloatValue(0.5f)
-                                                   FloatValue(0.3f)
-                                                   FloatValue(0.8f)])))
-                ])
+                Some(ParamSet([ ("filename", box "simple.exr")
+                                ("xresolution", box 200)
+                                ("yresolution", box 200)
+                                ("cropwindow", box [ box 0.2f
+                                                     box 0.5f
+                                                     box 0.3f
+                                                     box 0.8f ])
+                ]))
             )
         ]
 
@@ -76,24 +76,24 @@ type ``Given a full scene file`` () =
                        Point(0.0f, -1.0f, 0.0f),
                        Vector(0.0f, 1.0f, 0.0f))
             Ast.StandardDirective(StandardDirectiveType.Camera, "perspective",
-                                  Some([ ("fov", FloatValue(30.0f)) ]))
+                                  Some(ParamSet([ ("fov", box 30.0f) ])))
             Ast.StandardDirective(StandardDirectiveType.PixelFilter, "mitchell",
-                                  Some([ ("xwidth", FloatValue(2.0f)); 
-                                         ("ywidth", FloatValue(2.0f)) ]))
+                                  Some(ParamSet([ ("xwidth", box 2.0f)
+                                                  ("ywidth", box 2.0f) ])))
             Ast.StandardDirective(StandardDirectiveType.Sampler, "bestcandidate", None)
             Ast.StandardDirective(StandardDirectiveType.Film, "image", 
-                                  Some([ ("filename", StringValue("simple.exr"));
-                                         ("xresolution", IntegerValue(200)); 
-                                         ("yresolution", IntegerValue(200)) ]))
+                                  Some(ParamSet([ ("filename", box "simple.exr");
+                                                  ("xresolution", box 200); 
+                                                  ("yresolution", box 200) ])))
 
             Ast.WorldBegin
             Ast.AttributeBegin
 
             Ast.CoordSysTransform("camera")
             Ast.StandardDirective(StandardDirectiveType.LightSource, "distant",
-                                  Some([ ("from", PointValue(Point.Zero)); 
-                                         ("to", PointValue(Point(0.0f, 0.0f, 1.0f))); 
-                                         ("L", SpectrumValue(Spectrum(3.0f, 3.0f, 3.0f))) ]))
+                                  Some(ParamSet([ ("from", box Point.Zero); 
+                                                  ("to", box (Point(0.0f, 0.0f, 1.0f))); 
+                                                  ("L", box (Spectrum(3.0f, 3.0f, 3.0f))) ])))
 
             Ast.AttributeEnd
 
@@ -101,15 +101,15 @@ type ``Given a full scene file`` () =
 
             Ast.Rotate(135.0f, Vector(1.0f, 0.0f, 0.0f))
             Ast.Texture("checks", "spectrum", "checkerboard",
-                        Some([ ("uscale", FloatValue(4.0f)); 
-                               ("vscale", FloatValue(4.0f)); 
-                               ("tex1", SpectrumValue(Spectrum(1.0f, 0.0f, 0.0f))); 
-                               ("tex2", SpectrumValue(Spectrum(0.0f, 0.0f, 1.0f))) ]))
+                        Some(ParamSet([ ("uscale", box 4.0f); 
+                                        ("vscale", box 4.0f); 
+                                        ("tex1", box (Spectrum(1.0f, 0.0f, 0.0f))); 
+                                        ("tex2", box (Spectrum(0.0f, 0.0f, 1.0f))) ])))
             Ast.StandardDirective(StandardDirectiveType.Material, "matte",
-                                  Some([ ("Kd", StringValue("checks")) ]))
+                                  Some(ParamSet([ ("Kd", box "checks") ])))
             Ast.StandardDirective(StandardDirectiveType.Shape, "disk",
-                                  Some([ ("radius", FloatValue(20.0f)); 
-                                         ("height", FloatValue(-1.0f)) ]))
+                                  Some(ParamSet([ ("radius", box 20.0f); 
+                                                  ("height", box -1.0f) ])))
 
             Ast.AttributeEnd
             Ast.WorldEnd

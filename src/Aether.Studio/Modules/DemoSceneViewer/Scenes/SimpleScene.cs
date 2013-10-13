@@ -18,7 +18,7 @@ namespace Aether.Studio.Modules.DemoSceneViewer.Scenes
 	{
 		public override Scene CreateScene(WriteableBitmap bitmap)
 		{
-            var film = new ImageFilm(bitmap, new BoxFilter(0.5f, 0.5f), new float[] { 0, 1, 0, 1 });
+            var film = new ImageFilm(bitmap, new BoxFilter(0.5f, 0.5f), new CropWindow(0, 1, 0, 1));
 			var camera = new OrthographicCamera(
                 Transform.LookAt(new Point(0, 0, 10), new Point(0, 0, 0), new Vector(0, 1, 0)),
                 new float[] { -2, 2, -1, 1 }, 0.0f, 1.0f, 0.0f, 1e30f, film);
