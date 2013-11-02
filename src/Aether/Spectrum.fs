@@ -417,6 +417,7 @@ type SpectrumType =
 type Spectrum(coefficients : single[]) =
 
     new(r, g, b) = Spectrum([| r; g; b |])
+    new(c : single) = Spectrum(c, c, c)
 
     member this.Coefficients = coefficients
 
@@ -475,6 +476,9 @@ type Spectrum(coefficients : single[]) =
 
     static member (*) (left : Spectrum, right : single) =
         Spectrum.doOperation(left, right, (*))
+
+    static member (*) (left : single, right : Spectrum) =
+        Spectrum.doOperation(right, left, (*))
 
     /// Creates a new spectrum, applying sqrt for each coefficient.
     static member Sqrt(spectrum) = Spectrum.doOperation(spectrum, sqrt)

@@ -18,7 +18,7 @@ type Camera(cam2World : Transform,
 
 [<AbstractClass>]
 type ProjectiveCamera(cam2World, projection : Transform,
-                      screenWindow : single[], 
+                      screenWindow : CropWindow, 
                       shutterOpen, shutterClose, 
                       lensRadius, focalDistance,
                       film) =
@@ -29,10 +29,10 @@ type ProjectiveCamera(cam2World, projection : Transform,
 
     // Compute projective camera screen transformations.
     let screenToRaster = Transform.Scale(single film.XRes, single film.YRes, 1.0f) *
-                         Transform.Scale(1.0f / (screenWindow.[1] - screenWindow.[0]),
-                                         1.0f / (screenWindow.[2] - screenWindow.[3]),
+                         Transform.Scale(1.0f / (screenWindow.XMax - screenWindow.XMin),
+                                         1.0f / (screenWindow.YMin - screenWindow.YMax),
                                          1.0f) *
-                         Transform.Translate(-screenWindow.[0], -screenWindow.[3], 0.0f)
+                         Transform.Translate(-screenWindow.XMin, -screenWindow.YMax, 0.0f)
     let rasterToScreen = Transform.Inverse screenToRaster
     let rasterToCamera = (Transform.Inverse cameraToScreen) * rasterToScreen
 
@@ -50,7 +50,7 @@ type OrthographicCamera(cam2World : Transform, screenWindow, shutterOpen, shutte
         // Generate raster and camera samples.
         let rasterPoint = Point(single(sample.ImageX), single(sample.ImageY), 0.0f)
         let cameraPoint = this.RasterToCamera |>> rasterPoint
-        let ray = RaySegment(cameraPoint, Vector(0.0f, 0.0f, 1.0f), 0.0f, infinityf)
+        let ray = RaySegment(cameraPoint, Vector.UnitZ, 0.0f, infinityf)
 
         // TODO: Modify for depth of field.
 //        if this.LensRadius > 0.0f then
