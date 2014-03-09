@@ -6,13 +6,23 @@ open Aether.Transforms
 
 
 type DifferentialGeometry(point : Point, dpdu : Vector, dpdv : Vector,
-                          dndu, dndv, u, v, shape : Shape) =
+                          dndu, dndv, u : single, v : single,
+                          shape : Shape) =
     let normal = Vector.Cross(dpdu, dpdv) |> Vector.Normalize |> Vector.ToNormal
     let normal' = if shape.ReverseOrientation <> shape.TransformSwapsHandedness then normal * -1.0f else normal
 
     member this.Point = point
     member this.Normal = normal'
+    member this.U = u
+    member this.V = v
     member this.DpDu = dpdu
+
+    member val DpDx = Vector.Zero with get, set
+    member val DpDy = Vector.Zero with get, set
+    member val DuDx = 0.0f with get, set
+    member val DvDx = 0.0f with get, set
+    member val DuDy = 0.0f with get, set
+    member val DvDy = 0.0f with get, set
 
     member this.ComputeDifferentials ray =
         () // TODO

@@ -46,6 +46,12 @@ module Ast =
         member this.FindSingles name =
             this.Find<single list>(name, [])
 
+        member this.FindSpectrum name defaultValue =
+            this.Find<Spectrum>(name, defaultValue)
+
+        member this.FindPoint name defaultValue =
+            this.Find<Point>(name, defaultValue)
+
     and Param = string * obj
 
     and Directive =

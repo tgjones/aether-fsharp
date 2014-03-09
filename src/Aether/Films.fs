@@ -178,7 +178,7 @@ type ImageFilm(bitmap : WriteableBitmap, filter : Filter, cropWindow : CropWindo
         //bitmap.Invalidate()
         ()
 
-    static member CreateImageFilm (parameters : ParamSet) (filter : Filter) =
+    static member Create(parameters : ParamSet, filter : Filter) =
         //let filename = parameters.FindOneString "filename" ""
         let xres = parameters.FindInt "xresolution" 640
         let yres = parameters.FindInt "yresolution" 480

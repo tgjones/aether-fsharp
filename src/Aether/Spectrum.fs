@@ -486,6 +486,12 @@ type Spectrum(coefficients : single[]) =
     /// Creates a new spectrum, applying exp for each coefficient.
     static member Exp(spectrum) = Spectrum.doOperation(spectrum, exp)
 
+    /// Creates a new spectrum, applying clamp for each coefficient.
+    static member Clamp(spectrum) =
+        let low = 0.0f
+        let high = infinityf
+        Spectrum.doOperation(spectrum, (fun x -> clamp x low high))
+
     override this.Equals(other) =
         match other with
         | :? Spectrum as s2 -> coefficients = s2.Coefficients

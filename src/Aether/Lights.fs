@@ -1,9 +1,10 @@
 ﻿namespace Aether.Lights
 
 open Aether
+open Aether.Math
 open Aether.Geometry
 open Aether.Transforms
-open Aether.Math
+open Aether.Parsing
 
 
 type IIntersectable =
@@ -51,6 +52,13 @@ type PointLight(lightToWorld : Transform, intensity : Spectrum) =
         let visibilityTester = VisibilityTester.initPoints point epsilon position 0.0f time
         let result = intensity / (vectorToLight.LengthSquared())
         (result, directionToLight, visibilityTester)
+
+    static member Create(parameters : ParamSet, light2World : Transform) =
+        let I = parameters.FindSpectrum "I" (Spectrum(1.0f))
+        let scale = parameters.FindSpectrum "scale" (Spectrum(1.0f))
+        let from = parameters.FindPoint "from" Point.Zero
+        let l2w = Transform.Translate(from.ToVector()) * light2World
+        PointLight(l2w, I * scale)
 
 
 type DistantLight(lightToWorld : Transform, radiance, direction : Vector) =

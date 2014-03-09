@@ -298,6 +298,9 @@ and Normal(x : single, y : single, z : single) =
     static member inline FaceForward(v1 : Normal, v2 : Vector) =
         if Normal.Dot(v1, v2) < 0.0f then -v1 else v1
 
+    /// Normal(0.0f, 0.0f, 0.0f)
+    static member Zero = Normal(0.0f, 0.0f, 0.0f)
+
     override this.Equals(other) =
         match other with
         | :? Normal as p2 -> this.X = p2.X && this.Y = p2.Y && this.Z = p2.Z

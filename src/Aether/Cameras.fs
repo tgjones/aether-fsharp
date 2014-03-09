@@ -3,6 +3,7 @@
 open Aether.Math
 open Aether.Geometry
 open Aether.Transforms
+open Aether.Parsing
 open Aether.Sampling
 open Aether.Films
 
@@ -79,6 +80,39 @@ type PerspectiveCamera(cam2World : Transform, screenWindow, shutterOpen, shutter
         // TODO: Modify ray for depth of field.
         let ray' = cam2World |>> ray
         ray'
+
+    static member Create(parameters : ParamSet, cam2World : Transform, film : Film) =
+        let mutable shutterOpen = parameters.FindSingle "shutteropen" 0.0f
+        let mutable shutterClose = parameters.FindSingle "shutterclose" 1.0f
+        if shutterClose < shutterOpen then
+            swap &shutterOpen &shutterClose
+        let lensRadius = parameters.FindSingle "lensradius" 0.0f
+        let focalDistance = parameters.FindSingle "focaldistance" 1e30f
+        let frame = parameters.FindSingle "frameaspectratio" (single(film.XRes) / single(film.YRes))
+        let screenWindow = parameters.FindSingles("screenwindow")
+        let screen =
+            if List.length screenWindow = 4 then
+                { XMin = screenWindow.[0];
+                  XMax = screenWindow.[1];
+                  YMin = screenWindow.[2];
+                  YMax = screenWindow.[3] }
+            else if frame > 1.f then
+                { XMin = -frame;
+                  XMax =  frame;
+                  YMin = -1.0f;
+                  YMax = 1.0f }
+            else
+                { XMin = -1.0f; 
+                  XMax =  1.0f;
+                  YMin = -1.0f / frame;
+                  YMax =  1.0f / frame }
+        let fov = parameters.FindSingle "fov" 90.0f
+        //let halfFov = parameters.FindSingle "halffov" -1.0f
+
+        PerspectiveCamera(cam2World, screen,
+            shutterOpen, shutterClose,
+            lensRadius, focalDistance, fov, 
+            film)
 
 
 type EnvironmentCamera(cam2World : Transform, shutterOpen, shutterClose, film) =

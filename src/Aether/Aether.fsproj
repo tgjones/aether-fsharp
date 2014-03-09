@@ -59,11 +59,14 @@
     <Compile Include="MonteCarlo.fs" />
     <Compile Include="Lights.fs" />
     <Compile Include="Shapes/Shape.fs" />
+    <Compile Include="Shapes/Disk.fs" />
     <Compile Include="Shapes/Sphere.fs" />
     <Compile Include="Shapes/TriangleMesh.fs" />
     <Compile Include="Reflection/Reflection.fs" />
-      <Compile Include="Reflection/Bxdf.fs" />
-      <Compile Include="Reflection/Bsdf.fs" />
+    <Compile Include="Reflection/Bxdf.fs" />
+    <Compile Include="Reflection/Bsdf.fs" />
+    <Compile Include="Textures/Textures.fs" />
+	<Compile Include="Textures/ConstantTexture.fs" />
     <Compile Include="Materials.fs" />
     <Compile Include="Primitives.fs" />
     <Compile Include="Filters.fs" />

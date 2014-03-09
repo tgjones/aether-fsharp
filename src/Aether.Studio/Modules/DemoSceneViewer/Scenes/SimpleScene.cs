@@ -10,6 +10,7 @@ using Aether.Materials;
 using Aether.Primitives;
 using Aether.Sampling;
 using Aether.Shapes;
+using Aether.Textures;
 using Aether.Transforms;
 
 namespace Aether.Studio.Modules.DemoSceneViewer.Scenes
@@ -34,7 +35,10 @@ namespace Aether.Studio.Modules.DemoSceneViewer.Scenes
                 0.0f, 1.0f);
 
             var shape = new Sphere(Transform.Translate(Vector.Zero), false, 5, -4.9f, 4.9f, 360.0f);
-            var primitive = new GeometricPrimitive(shape, new MatteMaterial(new Spectrum(0.0f, 1.0f, 0.0f))); // Green
+		    var material = new MatteMaterial(
+                new ConstantTexture<Spectrum>(new Spectrum(0.0f, 1.0f, 0.0f)), // Green
+                new ConstantTexture<float>(0.0f)); 
+            var primitive = new GeometricPrimitive(shape, material);
 
             var lights = new List<Light>();
             lights.Add(new DistantLight(Transform.Translate(Vector.Zero),
