@@ -5,14 +5,24 @@ open Aether.Geometry
 open Aether.Transforms
 
 
-type DifferentialGeometry(point, dpdu : Vector, dpdv : Vector,
-                          dndu, dndv, u, v, shape : Shape) =
+type DifferentialGeometry(point : Point, dpdu : Vector, dpdv : Vector,
+                          dndu, dndv, u : single, v : single,
+                          shape : Shape) =
     let normal = Vector.Cross(dpdu, dpdv) |> Vector.Normalize |> Vector.ToNormal
     let normal' = if shape.ReverseOrientation <> shape.TransformSwapsHandedness then normal * -1.0f else normal
 
     member this.Point = point
     member this.Normal = normal'
+    member this.U = u
+    member this.V = v
     member this.DpDu = dpdu
+
+    member val DpDx = Vector.Zero with get, set
+    member val DpDy = Vector.Zero with get, set
+    member val DuDx = 0.0f with get, set
+    member val DvDx = 0.0f with get, set
+    member val DuDy = 0.0f with get, set
+    member val DvDy = 0.0f with get, set
 
     member this.ComputeDifferentials ray =
         () // TODO
@@ -39,42 +49,99 @@ and [<AbstractClass>] Shape(objectToWorld : Transform, reverseOrientation) =
     member this.ReverseOrientation = reverseOrientation
 
 
-and [<AbstractClass>] IntersectableShape(objectToWorld, reverseOrientation) =
+[<AbstractClass>]
+type IntersectableShape(objectToWorld, reverseOrientation) =
     inherit Shape(objectToWorld, reverseOrientation)
 
-    abstract TryIntersect : RaySegment -> (bool * single * single * option<DifferentialGeometry>)
+    abstract TryIntersect : RaySegment -> (single * single * DifferentialGeometry) option
 
     abstract Intersects : RaySegment -> bool
     default this.Intersects ray =
-        let result, _, _, _ = this.TryIntersect(ray)
-        result
+        match this.TryIntersect(ray) with
+        | Some(_) -> true
+        | None -> false
 
 
-and [<AbstractClass>] RefinableShape(objectToWorld, reverseOrientation) =
+[<AbstractClass>]
+type RefinableShape(objectToWorld, reverseOrientation) =
     inherit Shape(objectToWorld, reverseOrientation)
 
     abstract Refine : unit -> Shape list
 
 
-type Plane(objectToWorld, reverseOrientation, point, normal) =
+type TextureCoordinate = { X : single; Y : single }
+
+
+type Disk(objectToWorld : Transform, reverseOrientation,
+          height, radius, innerRadius, phiMax') =
     inherit IntersectableShape(objectToWorld, reverseOrientation)
 
-    member this.Point = point
-    member this.Normal = normal
+    let phiMax = toRadians (clamp phiMax' 0.0f 360.0f)
 
-    override this.ObjectSpaceBounds =
-        raise (System.NotImplementedException())
+    let objectSpaceBounds = BBox(Point(-radius, -radius, height),
+                                 Point( radius,  radius, height))
 
-    override this.TryIntersect ray =
-        raise (System.NotImplementedException())
+    override this.ObjectSpaceBounds = objectSpaceBounds
+
+    override this.TryIntersect ray' =
+        // Transform ray to object space.
+        let ray = this.WorldToObject |>> ray'
+
+        let computePlaneIntersection() =
+            if (abs ray.Direction.Z) < 1e-7f then
+                None
+            else
+                let thit = (height - ray.Origin.Z) / ray.Direction.Z
+                if thit < ray.MinT || thit > ray.MaxT then None
+                else Some(thit)
+
+        let computeHitPositionAndPhi thit =
+            let phit = ray.Evaluate(thit)
+            let dist2 = phit.X * phit.X + phit.Y * phit.Y
+            if dist2 > radius * radius || dist2 < innerRadius * innerRadius then
+                None
+            else
+                let phiTemp = atan2 phit.Y phit.X
+                let phi = if phiTemp < 0.0f then phiTemp + 2.0f * pi
+                          else phiTemp
+                if (phi > phiMax) then None
+                else Some(dist2, phit, phi)
+
+        match computePlaneIntersection() with
+        | Some(tHit) ->
+            match computeHitPositionAndPhi tHit with
+            | Some(dist2, pHit, phi) ->
+                // Find parametric representation of disk hit.
+                let u = phi / phiMax
+                let oneMinusV = (sqrt(dist2) - innerRadius) / (radius - innerRadius)
+                let invOneMinusV = if oneMinusV > 0.0f then 1.0f / oneMinusV else 0.0f
+                let v = 1.0f - oneMinusV
+                let dpdu = Vector(-phiMax * pHit.Y, phiMax * pHit.X, 0.0f)
+                           * phiMax * invTwoPi
+                let dpdv = Vector(-pHit.X * invOneMinusV, -pHit.Y * invOneMinusV, 0.0f) 
+                           * (radius - innerRadius) / radius
+                let dndu, dndv = Normal.Zero, Normal.Zero
+
+                // Initialize differenterial geometry from parametric information.
+                let dg = DifferentialGeometry(this.ObjectToWorld |>> pHit, 
+                                              this.ObjectToWorld |>> dpdu,
+                                              this.ObjectToWorld |>> dpdv, 
+                                              this.ObjectToWorld |>> dndu, 
+                                              this.ObjectToWorld |>> dndv,
+                                              u, v, this)
+
+                Some(tHit, 5e-4f * tHit, dg)
+            | None -> None
+        | None -> None
 
 
-type Sphere(objectToWorld, reverseOrientation, radius) =
+type Sphere(objectToWorld, reverseOrientation, radius, zMin, zMax, phiMax') =
     inherit IntersectableShape(objectToWorld, reverseOrientation)
 
-    let phiMax = pi * 2.0f
-    let thetaMin = pi
-    let thetaMax = pi * 2.0f
+    let thetaMin = acos (clamp (zMin / radius) -1.0f 1.0f)
+    let thetaMax = acos (clamp (zMax / radius) -1.0f 1.0f)
+    let thetaDiff = thetaMax - thetaMin
+    let phiMax = toRadians (clamp phiMax' 0.0f 360.0f)
 
     member this.Radius = radius
 
@@ -83,103 +150,124 @@ type Sphere(objectToWorld, reverseOrientation, radius) =
                         Point(radius, radius, radius))
 
     override this.TryIntersect ray =
-        // Initialize output.
-        let defaultOutput = (false, nanf, nanf, None)
-
         // Transform ray to object space.
         let transformedRay = this.WorldToObject |>> ray
 
-        // Compute quadratic sphre coefficients.
+        // Compute quadratic sphere coefficients.
         let origin = transformedRay.Origin |> Point.ToVector
         let a = transformedRay.Direction.LengthSquared()
         let b = 2.0f * Vector.Dot(origin, transformedRay.Direction)
         let c = Vector.Dot(origin, origin) - (radius * radius)
 
+        let findFirstIntersectionInValidRange t0 t1 =
+            if t0 > transformedRay.MaxT || t1 < transformedRay.MinT then
+                None
+            else if t0 < transformedRay.MinT then 
+                if t1 > transformedRay.MaxT then
+                    None
+                else
+                    Some(t1)
+            else
+                Some(t0)
+
+        let computeSphereHitPositionAndPhi tHit =
+            let pHitTemp = transformedRay.Evaluate tHit
+            let pHit = if pHitTemp.X = 0.0f && pHitTemp.Y = 0.0f then
+                            Point(1e-5f * radius, pHitTemp.Y, pHitTemp.Z)
+                        else pHitTemp
+            let phiTemp = atan2 pHit.Y pHit.X
+            let phi = if phiTemp < 0.0f then phiTemp + 2.0f * pi
+                        else phiTemp
+            (pHit, phi)
+
+        let testSphereIntersectionAgainstClippingParameters (pHit : Point) phi =
+            (zMin > -radius && pHit.Z < zMin) || 
+            (zMax < radius && pHit.Z > zMax) || 
+            (phi > phiMax)
+
+        // Finds the first sphere hit that matches clipping parameters.
+        let findValidSphereHit tHit t1 =
+            // Try first hit - which may be t0 or t1.
+            let (pHit, phi) = computeSphereHitPositionAndPhi tHit
+
+            // Test it against clipping parameters.
+            if (testSphereIntersectionAgainstClippingParameters pHit phi) then
+                if tHit = t1 then
+                    None
+                else if t1 > transformedRay.MaxT then
+                    None
+                else
+                    // Try again with t1.
+                    let (pHit', phi') = computeSphereHitPositionAndPhi t1
+                    if (testSphereIntersectionAgainstClippingParameters pHit' phi') then
+                        None
+                    else
+                        Some(t1, pHit', phi')
+            else
+                Some(tHit, pHit, phi)
+
+        let getSphereHit t0 t1 =
+            match findFirstIntersectionInValidRange t0 t1 with
+            | Some(tHit) -> findValidSphereHit tHit t1
+            | None -> None
+
+        let findParametricRepresentation (pHit : Point) phi =
+            let u = phi / phiMax
+            let theta = acos (clamp (pHit.Z / radius) -1.0f 1.0f)
+            let v = (theta - thetaMin) / thetaDiff
+            (u, v, theta)
+
+        let computeDifferentials (pHit : Point) theta =
+            // Compute sphere dpdu and dpdv.
+            let zRadius = sqrt (pHit.X * pHit.X + pHit.Y * pHit.Y)
+            let invZRadius = 1.0f / zRadius
+            let cosPhi = pHit.X * invZRadius
+            let sinPhi = pHit.Y * invZRadius
+            let dpdu = Vector(-phiMax * pHit.Y, phiMax * pHit.X, 0.0f)
+            let dpdv = (thetaDiff) * Vector(pHit.Z * cosPhi,
+                                            pHit.Z * sinPhi,
+                                            -radius * sin theta)
+
+            // Compute sphere dndu and dndv.
+            let d2Pduu = -phiMax * phiMax * Vector(pHit.X, pHit.Y, 0.0f)
+            let d2Pduv = thetaDiff * pHit.Z * phiMax * Vector(-sinPhi, cosPhi, 0.0f)
+            let d2Pdvv = -thetaDiff * thetaDiff * pHit.ToVector()
+
+            // Compute coefficients for fundamental forms.
+            let E = Vector.Dot(dpdu, dpdu)
+            let F = Vector.Dot(dpdu, dpdv)
+            let G = Vector.Dot(dpdv, dpdv)
+            let n = Vector.Cross(dpdu, dpdv) |> Vector.Normalize
+            let e = Vector.Dot(n, d2Pduu)
+            let f = Vector.Dot(n, d2Pduv)
+            let g = Vector.Dot(n, d2Pdvv)
+
+            // Compute dndu and dndv from fundamental form coefficients.
+            let invEGF2 = 1.0f / (E*G - F*F)
+            let dndu = ((f * F - e * G) * invEGF2 * dpdu + (e * F - f * E) * invEGF2 * dpdv).ToNormal()
+            let dndv = ((g * F - f * G) * invEGF2 * dpdu + (f * F - g * E) * invEGF2 * dpdv).ToNormal()
+
+            (dpdu, dpdv, dndu, dndv)
+
         // Solve quadratic equation
-        let mutable t0 = 0.0f
-        let mutable t1 = 0.0f
         match quadratic a b c with
         | (Some(t0), Some(t1)) ->
-            // Compute intersection distance along ray.
-            if t0 > transformedRay.MaxT || t1 < transformedRay.MinT then
-                defaultOutput
-            else
-                let intersect tHitTemp =
-                    // Compute sphere hit position and phi
-                    let pHit = transformedRay.Evaluate tHitTemp
-                    let mutable phi = atan2 pHit.Y pHit.X
-                    if phi < 0.0f then
-                        phi <- phi + pi * 2.0f
+            match getSphereHit t0 t1 with
+            | Some(tHit, pHit, phi) ->
+                let u, v, theta = findParametricRepresentation pHit phi
+                let dpdu, dpdv, dndu, dndv = computeDifferentials pHit theta
 
-                    // Find parametric representation of sphere hit.
-                    let u = phi / phiMax
-                    let theta = acos (clamp (pHit.Z / radius) -1.0f 1.0f)
-                    let v = (theta - thetaMin) / (thetaMax - thetaMin)
+                // Initialize differenterial geometry from parametric information.
+                let dg = DifferentialGeometry(this.ObjectToWorld |>> pHit, 
+                                              this.ObjectToWorld |>> dpdu,
+                                              this.ObjectToWorld |>> dpdv, 
+                                              this.ObjectToWorld |>> dndu, 
+                                              this.ObjectToWorld |>> dndv,
+                                              u, v, this)
 
-                    // Compute sphere dpdu and dpdv.
-                    let mutable cosPhi = 0.0f
-                    let mutable sinPhi = 0.0f
-                    let mutable dpDu = Vector.Zero
-                    let mutable dpDv = Vector.Zero
-                    let zRadius = sqrt (pHit.X * pHit.X + pHit.Y * pHit.Y)
-                    if zRadius = 0.0f then
-                        // Handle hit at degenerate parameterization point.
-                        cosPhi <- 0.0f
-                        sinPhi <- 1.0f
-                        dpDv <- (thetaMax - thetaMin) * Vector(pHit.Z * cosPhi, pHit.Z * sinPhi, -radius * (sin theta))
-                        dpDu <- Vector.Cross(dpDv, pHit.ToVector())
-                    else
-                        let inverseZRadius = 1.0f / zRadius
-                        cosPhi <- pHit.X * inverseZRadius
-                        sinPhi <- pHit.Y * inverseZRadius
-                        dpDu <- Vector(-phiMax * pHit.Y, phiMax * pHit.X, 0.0f)
-                        // TODO: The following line is identical to the branch above.
-                        dpDv <- (thetaMax - thetaMin) * new Vector(pHit.Z * cosPhi, pHit.Z * sinPhi, -radius * (sin theta))
-
-                    // Compute sphere dndu and dndv.
-                    let d2Pduu = -phiMax * phiMax * Vector(pHit.X, pHit.Y, 0.0f)
-                    let d2Pduv = (thetaMax - thetaMin) * pHit.Z * phiMax * Vector(-sinPhi, cosPhi, 0.0f)
-                    let d2Pdvv = -(thetaMax - thetaMin) * (thetaMax - thetaMin) * pHit.ToVector()
-
-                    // Compute coefficients for fundamental forms.
-                    let E = Vector.Dot(dpDu, dpDu)
-                    let F = Vector.Dot(dpDu, dpDv)
-                    let G = Vector.Dot(dpDv, dpDv)
-                    let n = Vector.Cross(dpDu, dpDv) |> Vector.Normalize
-                    let e = Vector.Dot(n, d2Pduu)
-                    let f = Vector.Dot(n, d2Pduv)
-                    let g = Vector.Dot(n, d2Pdvv)
-
-                    // Compute dndu and dndv from fundamental form coefficients.
-                    let invEGF2 = 1.0f / (E * G - F * F)
-                    let dnDu = (f * F - e * G) * invEGF2 * dpDu + (e * F - f * E) * invEGF2 * dpDv
-                    let dnDv = (g * F - f * G) * invEGF2 * dpDu + (f * F - g * E) * invEGF2 * dpDv
-
-                    // Initialize differenterial geometry from parametric information.
-                    let dg = DifferentialGeometry(this.ObjectToWorld |>> pHit, 
-                                                  this.ObjectToWorld |>> dpDu,
-                                                  this.ObjectToWorld |>> dpDv, 
-                                                  this.ObjectToWorld |>> dnDu, 
-                                                  this.ObjectToWorld |>> dnDv,
-                                                  u, v, this)
-
-                    let tHit = tHitTemp
-                    let rayEpsilon = 5e-4f * tHit
-                    (true, tHit, rayEpsilon, Some(dg))
-
-                let mutable tHitTemp = t0
-                if t0 < transformedRay.MinT then // Is first intersection before the range we're interested in?
-                    tHitTemp <- t1
-                    if tHitTemp > transformedRay.MaxT then // Is second intersection after the range we're interested in?
-                        defaultOutput
-                    else
-                        intersect tHitTemp
-                else
-                    intersect tHitTemp
-        | _ -> defaultOutput
-
-
-type TextureCoordinate = { X : single; Y : single }
+                Some(tHit, 5e-4f * tHit, dg)
+            | _ -> None
+        | _ -> None
 
 
 type TriangleMesh(objectToWorld : Transform, reverseOrientation, numTriangles, numVertices, 
@@ -239,30 +327,27 @@ and Triangle(objectToWorld, reverseOrientation, mesh : TriangleMesh, n) =
         BBox.FromPoints [ p1; p2; p3 ]
 
     override this.TryIntersect ray =
-        // TODO: This is duplicated in other shapes.
-        let defaultOutput = (false, nanf, nanf, None)
-
         let e1 = p2 - p1
         let e2 = p3 - p1
         let s1 = Vector.Cross(ray.Direction, e1)
         let divisor = Vector.Dot(s1, e1)
 
-        if divisor = 0.0f then defaultOutput else
+        if divisor = 0.0f then None else
             let invDivisor = 1.0f / divisor
 
             // Compute first barycentric coordinate
             let d = ray.Origin - p1
             let b1 = Vector.Dot(d, s1) * invDivisor
-            if b1 < 0.0f || b1 > 1.0f then defaultOutput else
+            if b1 < 0.0f || b1 > 1.0f then None else
                 
                 // Compute second barycentric coordinate
                 let s2 = Vector.Cross(d, e1)
                 let b2 = Vector.Dot(ray.Direction, s2) * invDivisor
-                if b2 < 0.0f || b1 + b2 > 1.0f then defaultOutput else
+                if b2 < 0.0f || b1 + b2 > 1.0f then None else
 
                     // Compute t to intersection point
                     let t = Vector.Dot(e2, s2) * invDivisor
-                    if t < ray.MinT || t > ray.MaxT then defaultOutput else
+                    if t < ray.MinT || t > ray.MaxT then None else
                         
                         // Compute deltas for triangle partial derivatives
                         let du1 = uvs.[0].X - uvs.[2].X
@@ -291,7 +376,7 @@ and Triangle(objectToWorld, reverseOrientation, mesh : TriangleMesh, n) =
 
                         // Fill in DifferentialGeometry from triangle hit
                         let dg = DifferentialGeometry(ray.Evaluate t, dpdu, dpdv,
-                                                      Vector.Zero, Vector.Zero,
+                                                      Normal.Zero, Normal.Zero,
                                                       tu, tv, this)
                         let rayEpsilon = 1e-3f * t
-                        (true, t, rayEpsilon, Some(dg))
+                        Some(t, rayEpsilon, dg)

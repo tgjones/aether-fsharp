@@ -8,7 +8,7 @@ namespace Aether.Studio.Modules.Startup
 	{
 		public override void Initialize()
 		{
-			Shell.Title = "Aether Studio";
+            MainWindow.Title = "Aether Studio";
 		}
 	}
 }

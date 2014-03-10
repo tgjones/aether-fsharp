@@ -138,3 +138,9 @@ type IdentityMapping3D(worldToTexture : Transform) =
 [<AbstractClass>]
 type Texture<'T>() =
     abstract member Evaluate : DifferentialGeometry -> 'T
+
+
+type ConstantTexture<'T>(value : 'T) =
+    inherit Texture<'T>()
+
+    override this.Evaluate(dg) = value

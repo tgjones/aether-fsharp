@@ -1,0 +1,79 @@
+﻿<?xml version="1.0"?>
+<SyntaxDefinition name="PBRT" extensions=".pbrt" xmlns="http://icsharpcode.net/sharpdevelop/syntaxdefinition/2008">
+  <Color name="StatementKeywords" foreground="DarkBlue" />
+  <Color name="Digits" foreground="Black" fontStyle="italic" />
+  <Color name="String" foreground="DarkRed"  />
+  <Color name="Character" foreground="Magenta" />
+  <Color name="Comment" foreground="SlateGray" />
+  <Color name="Punctuation" foreground="DarkGreen" />
+  <Color name="Literals" foreground="Black" fontWeight="bold" />
+  <RuleSet ignoreCase="false">
+    <Rule color="Punctuation">
+      [?,.()\[\]{}+\-/%*&lt;&gt;^!|]+
+    </Rule>
+    <Keywords color="StatementKeywords">
+        <Word>Accelerator</Word>
+        <Word>ActiveTransform</Word>
+        <Word>All</Word>
+        <Word>AreaLightSource</Word>
+        <Word>AttributeBegin</Word>
+        <Word>AttributeEnd</Word>
+        <Word>Camera</Word>
+        <Word>ConcatTransform</Word>
+        <Word>CoordinateSystem</Word>
+        <Word>CoordSysTransform</Word>
+        <Word>EndTime</Word>
+        <Word>Film</Word>
+        <Word>Identity</Word>
+        <Word>Include</Word>
+        <Word>LightSource</Word>
+        <Word>LookAt</Word>
+        <Word>MakeNamedMaterial</Word>
+        <Word>Material</Word>
+        <Word>NamedMaterial</Word>
+        <Word>ObjectBegin</Word>
+        <Word>ObjectEnd</Word>
+        <Word>ObjectInstance</Word>
+        <Word>PixelFilter</Word>
+        <Word>Renderer</Word>
+        <Word>ReverseOrientation</Word>
+        <Word>Rotate</Word>
+        <Word>Sampler</Word>
+        <Word>Scale</Word>
+        <Word>Shape</Word>
+        <Word>StartTime</Word>
+        <Word>SurfaceIntegrator</Word>
+        <Word>Texture</Word>
+        <Word>TransformBegin</Word>
+        <Word>TransformEnd</Word>
+        <Word>TransformTimes</Word>
+        <Word>Transform</Word>
+        <Word>Translate</Word>
+        <Word>Volume</Word>
+        <Word>VolumeIntegrator</Word>
+        <Word>WorldBegin</Word>
+        <Word>WorldEnd</Word>
+    </Keywords>
+    <Keywords color="Literals">
+      <Word>null</Word>
+    </Keywords>
+    <Span color="Comment">
+      <Begin>\#</Begin>
+    </Span>
+    <Span color="String">
+      <Begin>"</Begin>
+      <End>"</End>
+      <RuleSet>
+        <Span begin="\\" end="." />
+      </RuleSet>
+    </Span>
+    <Span color="Character">
+      <Begin>'</Begin>
+      <End>'</End>
+      <RuleSet>
+        <Span begin="\\" end="." />
+      </RuleSet>
+    </Span>
+    <Rule color="Digits">\b0[xX][0-9a-fA-F]+|(\b\d+(\.[0-9]+)?|\.[0-9]+)([eE][+-]?[0-9]+)?</Rule>
+  </RuleSet>
+</SyntaxDefinition>

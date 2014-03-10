@@ -17,6 +17,9 @@ Bin
 *.cache
 Thumbs.db
 
+# NuGet Packages Directory
+packages
+
 # Mac and MonoDevelop stuff
 .DS_Store
 *.userprefs

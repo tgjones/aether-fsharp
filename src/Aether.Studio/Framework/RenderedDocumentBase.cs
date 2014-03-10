@@ -1,9 +1,9 @@
 ﻿using System.Windows.Media.Imaging;
-using Caliburn.Micro;
+using Gemini.Framework;
 
 namespace Aether.Studio.Framework
 {
-	public abstract class RenderedDocumentBase : Screen
+	public abstract class RenderedDocumentBase : Document
 	{
 		private WriteableBitmap _outputBitmap;
 		public WriteableBitmap OutputBitmap

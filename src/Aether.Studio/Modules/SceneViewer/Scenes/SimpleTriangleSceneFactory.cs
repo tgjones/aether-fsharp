@@ -13,9 +13,9 @@ using Aether.Shapes;
 using Aether.Textures;
 using Aether.Transforms;
 
-namespace Aether.Studio.Modules.DemoSceneViewer.Scenes
+namespace Aether.Studio.Modules.SceneViewer.Scenes
 {
-	public class SimpleTriangleScene : DemoSceneBase
+	public class SimpleTriangleSceneFactory : SceneFactoryBase
 	{
 		public override Scene CreateScene(WriteableBitmap bitmap)
 		{
