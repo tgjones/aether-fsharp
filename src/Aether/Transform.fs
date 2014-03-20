@@ -30,6 +30,12 @@ type Matrix4x4(values : single[,]) =
                                        0.0f, 0.0f, 1.0f, 0.0f,
                                        0.0f, 0.0f, 0.0f, 1.0f)
 
+    /// Returns the empty matrix. The identity matrix has all zeroes.
+    static member Empty = Matrix4x4(0.0f, 0.0f, 0.0f, 0.0f,
+                                    0.0f, 0.0f, 0.0f, 0.0f,
+                                    0.0f, 0.0f, 0.0f, 0.0f,
+                                    0.0f, 0.0f, 0.0f, 0.0f)
+
     /// Turns the rows of a given matrix into columns and vice-versa.
     static member Transpose (m : Matrix4x4) =
         Matrix4x4(m.[0, 0], m.[1, 0], m.[2, 0], m.[3, 0],
@@ -129,6 +135,7 @@ type Matrix4x4(values : single[,]) =
 type Transform(matrix : Matrix4x4, matrixInverse : Matrix4x4) =
     
     new(matrix) = Transform(matrix, Matrix4x4.Inverse matrix)
+    new() = Transform(Matrix4x4.Identity, Matrix4x4.Identity)
 
     member this.Matrix = matrix
     member this.MatrixInverse = matrixInverse

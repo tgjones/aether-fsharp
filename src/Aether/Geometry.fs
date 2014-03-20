@@ -1,5 +1,7 @@
 ﻿namespace Aether.Geometry
 
+open System.Collections.Generic
+
 open Aether.Math
 
 
@@ -451,12 +453,10 @@ type BBox(min, max) =
 
             t0 <= t1
 
-        let falseResult = (None, None)
-
-        if not (testDimension 0) then falseResult
-        else if not (testDimension 1) then falseResult
-        else if not (testDimension 2) then falseResult
-        else (Some(!t0), Some(!t1))
+        if not (testDimension 0) then None
+        elif not (testDimension 1) then None
+        elif not (testDimension 2) then None
+        else Some(!t0, !t1)
 
     override this.Equals(other) =
         match other with
@@ -470,3 +470,8 @@ type BBox(min, max) =
 
     override this.ToString() =
         sprintf "{Min:%O Max:%O}" this.Min this.Max
+
+
+[<RequireQualifiedAccess>]
+module List =
+  let fromVector (v : Vector) = [ v.X; v.Y; v.Z ]

@@ -18,7 +18,7 @@ module Ast =
         member private this.Find(name : string, defaultValue : 'a) =
             let findValue (parameter : Param) =
                 match parameter with
-                | (name, v) when (v :? 'a = true) -> Some(v :?> 'a)
+                | (name2, v) when (name = name2 && v :? 'a = true) -> Some(v :?> 'a)
                 | _ -> None
 
             match this with
@@ -37,6 +37,9 @@ module Ast =
         member this.FindString name defaultValue =
             this.Find<string>(name, defaultValue)
 
+        member this.FindBool name defaultValue =
+            this.Find<bool>(name, defaultValue)
+
         member this.FindInt name defaultValue =
             this.Find<int>(name, defaultValue)
 
@@ -52,11 +55,14 @@ module Ast =
         member this.FindPoint name defaultValue =
             this.Find<Point>(name, defaultValue)
 
+        member this.FindTexture name =
+            this.Find<string>(name, "")
+
     and Param = string * obj
 
     and Directive =
-        | StandardDirective of directiveType : StandardDirectiveType * implementationType : string * parameters : ParamSet option
-        | Texture of name : string * textureType : string * textureClass : string * parameters : ParamSet option
+        | StandardDirective of directiveType : StandardDirectiveType * implementationType : string * parameters : ParamSet
+        | Texture of name : string * textureType : string * textureClass : string * parameters : ParamSet
         | Identity
         | Translate of Vector
         | Scale of Vector
@@ -75,10 +81,12 @@ module Ast =
         | Film = 0
         | Camera = 1
         | PixelFilter = 2
-        | Sampler = 3
-        | LightSource = 4
+        | Accelerator = 3
+        | Sampler = 4
+        | LightSource = 5
         | Material = 6
         | Shape = 7
+        | SurfaceIntegrator = 8
 
 
 let configurator = ParserFactory.Configure<obj>()
@@ -118,10 +126,10 @@ sceneFile.AddProduction(directiveList).SetReduceToFirst()
 directiveList.AddProduction(directiveList, directive).SetReduceFunction (fun a b -> a @ [b])
 directiveList.AddProduction(directive).SetReduceFunction (fun a -> [a])
 
-directive.AddProduction(standardDirectiveType, quotedString, paramSet).SetReduceFunction (fun a b c -> StandardDirective(a, b, Some(ParamSet(c))))
-directive.AddProduction(standardDirectiveType, quotedString).SetReduceFunction (fun a b -> StandardDirective(a, b, None))
-directive.AddProduction(terminal "Texture", quotedString, quotedString, quotedString, paramSet).SetReduceFunction (fun _ b c d e -> Texture(b, c, d, Some(ParamSet(e))))
-directive.AddProduction(terminal "Texture", quotedString, quotedString, quotedString).SetReduceFunction (fun _ b c d -> Texture(b, c, d, None))
+directive.AddProduction(standardDirectiveType, quotedString, paramSet).SetReduceFunction (fun a b c -> StandardDirective(a, b, ParamSet(c)))
+directive.AddProduction(standardDirectiveType, quotedString).SetReduceFunction (fun a b -> StandardDirective(a, b, ParamSet([])))
+directive.AddProduction(terminal "Texture", quotedString, quotedString, quotedString, paramSet).SetReduceFunction (fun _ b c d e -> Texture(b, c, d, ParamSet(e)))
+directive.AddProduction(terminal "Texture", quotedString, quotedString, quotedString).SetReduceFunction (fun _ b c d -> Texture(b, c, d, ParamSet([])))
 directive.AddProduction(terminal "Identity").SetReduceFunction (fun _ -> Identity)
 directive.AddProduction(terminal "Translate", vector3D).SetReduceFunction (fun _ b -> Translate(b))
 directive.AddProduction(terminal "Scale", vector3D).SetReduceFunction (fun _ b -> Scale(b))
@@ -136,13 +144,15 @@ directive.AddProduction(terminal "WorldEnd").SetReduceFunction (fun _ -> WorldEn
 directive.AddProduction(terminal "AttributeBegin").SetReduceFunction (fun _ -> AttributeBegin)
 directive.AddProduction(terminal "AttributeEnd").SetReduceFunction (fun _ -> AttributeEnd)
 
-standardDirectiveType.AddProduction(terminal "Film")       .SetReduceFunction (fun _ -> StandardDirectiveType.Film)
-standardDirectiveType.AddProduction(terminal "Camera")     .SetReduceFunction (fun _ -> StandardDirectiveType.Camera)
-standardDirectiveType.AddProduction(terminal "PixelFilter").SetReduceFunction (fun _ -> StandardDirectiveType.PixelFilter)
-standardDirectiveType.AddProduction(terminal "Sampler")    .SetReduceFunction (fun _ -> StandardDirectiveType.Sampler)
-standardDirectiveType.AddProduction(terminal "LightSource").SetReduceFunction (fun _ -> StandardDirectiveType.LightSource)
-standardDirectiveType.AddProduction(terminal "Material")   .SetReduceFunction (fun _ -> StandardDirectiveType.Material)
-standardDirectiveType.AddProduction(terminal "Shape")      .SetReduceFunction (fun _ -> StandardDirectiveType.Shape)
+standardDirectiveType.AddProduction(terminal "Film")             .SetReduceFunction (fun _ -> StandardDirectiveType.Film)
+standardDirectiveType.AddProduction(terminal "Camera")           .SetReduceFunction (fun _ -> StandardDirectiveType.Camera)
+standardDirectiveType.AddProduction(terminal "SurfaceIntegrator").SetReduceFunction (fun _ -> StandardDirectiveType.SurfaceIntegrator)
+standardDirectiveType.AddProduction(terminal "PixelFilter")      .SetReduceFunction (fun _ -> StandardDirectiveType.PixelFilter)
+standardDirectiveType.AddProduction(terminal "Accelerator")      .SetReduceFunction (fun _ -> StandardDirectiveType.Accelerator)
+standardDirectiveType.AddProduction(terminal "Sampler")          .SetReduceFunction (fun _ -> StandardDirectiveType.Sampler)
+standardDirectiveType.AddProduction(terminal "LightSource")      .SetReduceFunction (fun _ -> StandardDirectiveType.LightSource)
+standardDirectiveType.AddProduction(terminal "Material")         .SetReduceFunction (fun _ -> StandardDirectiveType.Material)
+standardDirectiveType.AddProduction(terminal "Shape")            .SetReduceFunction (fun _ -> StandardDirectiveType.Shape)
 
 paramSet.AddProduction(paramSet, param).SetReduceFunction (fun a b -> a @ [b])
 paramSet.AddProduction(param).SetReduceFunction (fun a -> [a])
@@ -165,10 +175,12 @@ let getParam (typeAndName : string) (value : obj) =
             match value with
             | :? single as i -> box (int i)
             | _ -> value
+        | "bool"   -> box (System.Convert.ToBoolean(value))
         | "point"  -> box (Point(getThreeSingles()))
         | "vector" -> box (Vector(getThreeSingles()))
         | "normal" -> box (Normal(getThreeSingles()))
-        | "rgb"    ->
+        | "rgb"
+        | "color" ->
             let (r, g, b) = getThreeSingles()
             box (Spectrum([| r; g; b |]))
         | _ -> value

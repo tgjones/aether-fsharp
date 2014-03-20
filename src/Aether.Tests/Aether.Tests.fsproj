@@ -62,6 +62,7 @@
     <Compile Include="SamplingTests.fs" />
     <Compile Include="CamerasTests.fs" />
     <Compile Include="ParsingTests.fs" />
+    <Compile Include="SceneReaderTests.fs" />
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>

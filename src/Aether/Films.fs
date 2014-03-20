@@ -46,6 +46,8 @@ type Film(xRes, yRes) =
     /// and then display or store, the final image.
     abstract WriteImage : single -> unit
 
+    abstract Bitmap : WriteableBitmap
+
 
 type private Pixel =
     val Lxyz      : single[]
@@ -60,11 +62,10 @@ type CropWindow = { XMin : single; XMax : single;
                     YMin : single; YMax : single }
 
 
-type ImageFilm(bitmap : WriteableBitmap, filter : Filter, cropWindow : CropWindow) =
-    inherit Film(bitmap.PixelWidth, bitmap.PixelHeight)
+type ImageFilm(xRes, yRes, filter : Filter, cropWindow : CropWindow) =
+    inherit Film(xRes, yRes)
 
-    let xRes = bitmap.PixelWidth
-    let yRes = bitmap.PixelHeight
+    let bitmap = WriteableBitmap(xRes, yRes, 96.0, 96.0, PixelFormats.Pbgra32, null)
 
     // Compute film image extent.
     let xPixelStart = ceil2int (single(xRes) * cropWindow.XMin)
@@ -90,6 +91,8 @@ type ImageFilm(bitmap : WriteableBitmap, filter : Filter, cropWindow : CropWindo
         while initialValue <> Interlocked.CompareExchange(&location1, computedValue, initialValue) do
             initialValue <- location1
             computedValue <- initialValue + value
+
+    override this.Bitmap = bitmap
 
     override this.AddSample sample l =
         // Compute sample's raster extent.
@@ -171,25 +174,12 @@ type ImageFilm(bitmap : WriteableBitmap, filter : Filter, cropWindow : CropWindo
                 let color = Color.FromRgb(byte(rgb.[0] * 255.0f),
                                           byte(rgb.[1] * 255.0f),
                                           byte(rgb.[2] * 255.0f))
-                bitmap.SetPixeli(index, color)
+
+                let callbackImpl = fun (i) -> bitmap.SetPixeli(i, color)
+                let callback = new System.Action<int>(callbackImpl)
+                bitmap.Dispatcher.BeginInvoke(callback, index) |> ignore
                 index <- index + 1
 
     override this.UpdateDisplay x0 y0 x1 y1 splatScale =
         //bitmap.Invalidate()
         ()
-
-    static member Create(parameters : ParamSet, filter : Filter) =
-        //let filename = parameters.FindOneString "filename" ""
-        let xres = parameters.FindInt "xresolution" 640
-        let yres = parameters.FindInt "yresolution" 480
-        let cr = parameters.FindSingles("cropwindow")
-        let cropWindow =
-            if List.length cr = 4 then
-                { XMin = clamp (min cr.[0] cr.[1]) 0.0f 1.0f;
-                  XMax = clamp (max cr.[0] cr.[1]) 0.0f 1.0f;
-                  YMin = clamp (min cr.[2] cr.[3]) 0.0f 1.0f;
-                  YMax = clamp (max cr.[2] cr.[3]) 0.0f 1.0f; }
-            else
-                { XMin = 0.0f; XMax = 1.0f; YMin = 0.0f; YMax = 1.0f }
-        let bitmap = WriteableBitmap(xres, yres, 96.0, 96.0, PixelFormats.Pbgra32, null)
-        ImageFilm(bitmap, filter, cropWindow)

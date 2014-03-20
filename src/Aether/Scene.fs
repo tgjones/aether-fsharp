@@ -1,5 +1,7 @@
 ﻿namespace Aether
 
+open System.Threading
+
 open Aether.Lights
 open Aether.Shapes
 open Aether.Primitives
@@ -19,10 +21,15 @@ type Scene(camera : Camera,
     interface IIntegratableScene with
         member this.Lights = lights
         member this.TryIntersect ray = primitive.TryIntersect ray
+
+    member this.Output = camera.Film.Bitmap
         
-    member this.Render () =
+    member this.Render(cancellationToken : CancellationToken) =
         let rng = System.Random(1000)
+
         for sample in sampler.GetSamples(rng) do
+            cancellationToken.ThrowIfCancellationRequested()
+
             let ray = camera.GenerateRay sample
 
             let li ray sample = surfaceIntegrator.Li this ray sample

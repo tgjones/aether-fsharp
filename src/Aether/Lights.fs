@@ -14,23 +14,19 @@ type IIntersectable =
 type VisibilityTester(ray : RaySegment) =
     member this.Ray = ray
 
-[<CompilationRepresentation(CompilationRepresentationFlags.ModuleSuffix)>]
-[<RequireQualifiedAccess>]
-module VisibilityTester =
-
-    let initPoints (p1 : Point) epsilon1 (p2 : Point) epsilon2 time =
+    new(p1 : Point, epsilon1, p2 : Point, epsilon2, time) =
         let distance = Point.Distance(p1, p2)
         let ray = RaySegment(p1, p2 - p1, epsilon1,
-                   distance * (1.0f - epsilon2),
-                   time)
+                             distance * (1.0f - epsilon2),
+                             time)
         VisibilityTester(ray)
 
-    let initPointVector p epsilon w time =
+    new(p, epsilon, w, time) =
         let ray = RaySegment(p, w, epsilon, infinityf, time)
         VisibilityTester(ray)
 
-    let unoccluded (scene : IIntersectable) (tester : VisibilityTester) =
-        not(scene.Intersects tester.Ray)
+    member this.Unoccluded(scene : IIntersectable) =
+        not(scene.Intersects ray)
 
 
 [<AbstractClass>]
@@ -49,16 +45,9 @@ type PointLight(lightToWorld : Transform, intensity : Spectrum) =
     override this.Evaluate point epsilon time =
         let vectorToLight = position - point
         let directionToLight = Vector.Normalize vectorToLight
-        let visibilityTester = VisibilityTester.initPoints point epsilon position 0.0f time
+        let visibilityTester = VisibilityTester(point, epsilon, position, 0.0f, time)
         let result = intensity / (vectorToLight.LengthSquared())
         (result, directionToLight, visibilityTester)
-
-    static member Create(parameters : ParamSet, light2World : Transform) =
-        let I = parameters.FindSpectrum "I" (Spectrum(1.0f))
-        let scale = parameters.FindSpectrum "scale" (Spectrum(1.0f))
-        let from = parameters.FindPoint "from" Point.Zero
-        let l2w = Transform.Translate(from.ToVector()) * light2World
-        PointLight(l2w, I * scale)
 
 
 type DistantLight(lightToWorld : Transform, radiance, direction : Vector) =
@@ -67,5 +56,5 @@ type DistantLight(lightToWorld : Transform, radiance, direction : Vector) =
     let direction = lightToWorld |>> direction |> Vector.Normalize
 
     override this.Evaluate point epsilon time =
-        let visibilityTester = VisibilityTester.initPointVector point epsilon direction time
+        let visibilityTester = VisibilityTester(point, epsilon, direction, time)
         (radiance, direction, visibilityTester)

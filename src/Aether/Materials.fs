@@ -15,7 +15,7 @@ type Material() =
 
 type MatteMaterial(kd : Texture<Spectrum>,
                    sigma : Texture<single>, 
-                   [<Optional; DefaultParameterValue(null)>] ?bumpMap : Texture<single>) =
+                   bumpMap : Texture<single> option) =
     inherit Material()
 
     override this.GetBsdf dg =

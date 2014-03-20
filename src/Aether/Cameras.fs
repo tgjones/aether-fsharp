@@ -13,6 +13,8 @@ type Camera(cam2World : Transform,
             shutterOpen : single, shutterClose : single,
             film : Film) =
     member this.Film = film
+    member this.ShutterOpen = shutterOpen
+    member this.ShutterClose = shutterClose
 
     abstract GenerateRay : ICameraSample -> RaySegment
 

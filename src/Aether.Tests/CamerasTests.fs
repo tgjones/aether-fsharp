@@ -13,8 +13,7 @@
     type ``Given an orthographic camera`` () =
         let cam2World = Transform.LookAt(Point(0.0f, 0.0f, -1.0f), Point.Zero, Vector.UnitY)
         let filmCropWindow = { XMin = 0.0f; XMax = 1.0f; YMin = 0.0f; YMax = 1.0f; }
-        let filmBitmap = WriteableBitmap(10, 10, 96.0, 96.0, PixelFormats.Pbgra32, null)
-        let film = ImageFilm(filmBitmap, BoxFilter(1.0f, 1.0f), filmCropWindow)
+        let film = ImageFilm(10, 10, BoxFilter(1.0f, 1.0f), filmCropWindow)
         let cameraScreenWindow = { XMin = -1.0f; XMax = 1.0f; YMin = -1.0f; YMax = 1.0f; }
         let camera = OrthographicCamera(cam2World, cameraScreenWindow,
                                         0.0f, 1.0f, 0.0f, 0.0f, film)

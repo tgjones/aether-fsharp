@@ -48,6 +48,10 @@ module MathUtility =
     let inline floor2int value =
         int(floor value)
 
+    /// Rounds the given number to the nearest integer.
+    let inline round2int value =
+      floor2int (value + 0.5f)
+
     /// Ceiling of the given number, cast to an integer.
     let inline ceil2int value =
         int(ceil value)
