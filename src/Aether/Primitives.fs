@@ -14,79 +14,70 @@ type Intersection(primitive : Primitive, dg : DifferentialGeometry,
     
     member this.RayEpsilon = rayEpsilon
 
-    member this.GetBsdf ray =
+    member this.GetBsdf(ray) =
         dg.ComputeDifferentials(ray)
-        primitive.GetBsdf dg worldToObject
+        primitive.GetBsdf(dg, worldToObject)
 
 
 and [<AbstractClass>] Primitive() =
 
-  abstract WorldBound : unit -> BBox
+    abstract WorldBound : unit -> BBox
 
-  member this.FullyRefine() =
-    let refined = List<Primitive>()
-    let todo = Queue([ this ])
-    while todo.Count > 0 do
-      let primitive = todo.Dequeue()
-      if primitive.CanIntersect() then
-        refined.Add(primitive)
-      else
-        primitive.Refine() |> List.iter (fun x -> refined.Add(x))
-    List.ofSeq refined
+    member this.FullyRefine() =
+        let refined = List<Primitive>()
+        let todo = Stack([ this ])
+        while todo.Count > 0 do
+            let primitive = todo.Pop()
+            if primitive.CanIntersect() then
+                refined.Add(primitive)
+            else
+                primitive.Refine() |> List.iter (fun x -> todo.Push(x))
+        List.ofSeq refined
 
-  abstract CanIntersect : unit -> bool
-  default this.CanIntersect() = true
+    abstract CanIntersect : unit -> bool
+    default this.CanIntersect() = true
 
-  abstract Refine : unit -> Primitive list
-  default this.Refine() = failwith "Unimplemented method called!"
+    abstract Refine : unit -> Primitive list
+    default this.Refine() = failwith "Unimplemented method called!"
 
-  abstract TryIntersect : RaySegment -> Intersection option
-  abstract Intersects : RaySegment -> bool
+    abstract TryIntersect : RaySegment -> Intersection option
+    abstract Intersects : RaySegment -> bool
 
-  abstract GetBsdf : DifferentialGeometry -> Transform -> Bsdf
+    abstract GetBsdf : DifferentialGeometry * Transform -> Bsdf
+    //abstract GetBssrdf : DifferentialGeometry * Transform -> Bssrdf
 
 
 type GeometricPrimitive(shape : Shape, material : Material) =
-  inherit Primitive()
+    inherit Primitive()
 
-  override this.WorldBound() =
-    shape.WorldSpaceBounds
+    override this.WorldBound() =
+        shape.WorldSpaceBounds
 
-  override this.CanIntersect() =
-    match shape with
-    | :? IntersectableShape -> true
-    | _ -> false
+    override this.CanIntersect() =
+        shape.CanIntersect
+    
+    override this.Refine() =
+        shape.Refine() |> List.map (fun x -> GeometricPrimitive(x, material) :> Primitive)
 
-  override this.Refine() =
-    match shape with
-    | :? RefinableShape as s ->
-      s.Refine() |> List.map (fun x -> GeometricPrimitive(x, material) :> Primitive)
-    | _ -> failwith "Shape is not refinable"
+    override this.TryIntersect ray =
+        match shape.TryIntersect(ray) with
+        | Some(tHit, rayEpsilon, dg) ->
+            let intersection = Intersection(this, dg, shape.WorldToObject, rayEpsilon)
+            ray.MaxT <- tHit
+            Some(intersection)
+        | None -> None
 
-  override this.TryIntersect ray =
-    match shape with
-    | :? IntersectableShape as s ->
-      match s.TryIntersect(ray) with
-      | Some(tHit, rayEpsilon, dg) ->
-        let intersection = Intersection(this, dg, shape.WorldToObject, rayEpsilon)
-        ray.MaxT <- tHit
-        Some(intersection)
-      | None -> None
-    | _ -> failwith "Shape is not intersectable"
+    override this.Intersects ray =
+        shape.Intersects(ray)
 
-  override this.Intersects ray =
-    match shape with
-    | :? IntersectableShape as s -> s.Intersects(ray)
-    | _ -> failwith "Shape is not intersectable"
-
-  override this.GetBsdf dg worldToObject =
-    // TODO: Allow shape to use a different geometry for shading.
-    material.GetBsdf(dg)
+    override this.GetBsdf(dg, objectToWorld) =
+        let dgs = shape.GetShadingGeometry(objectToWorld, dg)
+        material.GetBsdf(dg, dgs)
 
 
 [<AbstractClass>]
 type Aggregate() =
-  inherit Primitive()
+    inherit Primitive()
 
-  override this.GetBsdf dg worldToObject =
-    failwith "Should have gone to GeometricPrimitive"
+    override this.GetBsdf(dg, worldToObject) =
+        failwith "Should have gone to GeometricPrimitive"

@@ -139,6 +139,9 @@ type IdentityMapping3D(worldToTexture : Transform) =
 type Texture<'T>() =
     abstract member Evaluate : DifferentialGeometry -> 'T
 
+    interface ITexture<'T> with
+        member this.Evaluate(dg) = this.Evaluate(dg)
+
 
 type ConstantTexture<'T>(value : 'T) =
     inherit Texture<'T>()

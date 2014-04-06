@@ -79,7 +79,7 @@ type Vector(x : single, y : single, z : single) =
 
     /// Creates a coordinate system from a single vector, using the cross
     /// product two times to get a set of three orthogonal vectors.
-    static member CoordinateSystem (v1 : Vector) =
+    static member CoordinateSystem(v1 : Vector) =
         let v2 =
             if abs v1.X > abs v1.Y then
                 let invLen = 1.0f / (sqrt v1.X*v1.X + v1.Z*v1.Z)
@@ -300,6 +300,10 @@ and Normal(x : single, y : single, z : single) =
     static member inline FaceForward(v1 : Normal, v2 : Vector) =
         if Normal.Dot(v1, v2) < 0.0f then -v1 else v1
 
+    /// Converts a Normal to a Vector.
+    member inline this.ToVector () =
+        Vector(this.X, this.Y, this.Z)
+
     /// Normal(0.0f, 0.0f, 0.0f)
     static member Zero = Normal(0.0f, 0.0f, 0.0f)
 
@@ -319,19 +323,20 @@ and Normal(x : single, y : single, z : single) =
 
 
 type RaySegment(origin : Point, direction : Vector,
-                minT : single, maxT : single,
-                ?time : single) =
+                minT : single, ?maxT : single,
+                ?time : single, ?depth : int) =
 
-    let mutable maxT' = maxT
+    let maxT' = defaultArg maxT infinityf
     let time' = defaultArg time 0.0f
+    let depth' = defaultArg depth 0
 
     member this.Origin = origin
     member this.Direction = direction
     member this.MinT = minT
-    member this.MaxT
-        with get () = maxT'
-        and set (value) = maxT' <- value
+    member val MaxT = maxT' with get, set
     member this.Time = time'
+
+    member val Depth = depth' with get, set
 
     /// Gets the point at a particular position along a ray.
     member this.Evaluate t =

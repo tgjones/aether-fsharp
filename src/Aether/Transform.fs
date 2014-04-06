@@ -115,6 +115,18 @@ type Matrix4x4(values : single[,]) =
 
         Matrix4x4(minv)
 
+    static member SolveLinearSystem2x2(A : single list list, B : single list) =
+        let det = A.[0].[0] * A.[1].[1] - A.[0].[1] * A.[1].[0]
+        if abs det < 1e-10f then
+            None
+        else
+            let x0 = (A.[1].[1]*B.[0] - A.[0].[1]*B.[1]) / det
+            let x1 = (A.[0].[0]*B.[1] - A.[1].[0]*B.[0]) / det
+            if System.Single.IsNaN(x0) || System.Single.IsNaN(x1) then
+                None
+            else
+                Some(x0, x1)
+
     override this.Equals(other) =
         match other with
         | :? Matrix4x4 as m2 -> values = m2.Values

@@ -67,6 +67,12 @@ module MonteCarlo =
         let y = r * sin theta
         (x, y)
 
+    let uniformSampleTriangle u1 u2 =
+        let su1 = sqrt u1
+        let u = 1.0f - su1
+        let v = u2 * su1
+        (u, v)
+
     let concentricSampleDisk u1 u2 =
         // Map uniform random numbers to [-1,1].
         let sx = 2.0f * u1 - 1.0f
@@ -100,6 +106,15 @@ module MonteCarlo =
             let dx = r * cos theta
             let dy = r * sin theta
             (dx, dy)
+
+    let uniformConePdf cosThetaMax =
+        1.0f / (2.0f * pi * (1.0f - cosThetaMax))
+
+    let uniformSampleCone u1 u2 cosThetaMax (x : Vector) (y : Vector) (z : Vector) =
+        let costheta = lerp u1 cosThetaMax 1.0f
+        let sintheta = sqrt (1.0f - costheta*costheta)
+        let phi = u2 * 2.0f * pi
+        cos(phi) * sintheta * x + sin(phi) * sintheta * y + costheta * z
 
 
 [<RequireQualifiedAccess>]

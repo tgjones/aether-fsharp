@@ -4,6 +4,7 @@ open System.Collections.Generic
 open Aether
 open Aether.Math
 
+
 type ICameraSample =
     abstract ImageX : single
     abstract ImageY : single
@@ -13,8 +14,14 @@ type ICameraSample =
 
 
 type Sample(imageX, imageY, lensU, lensV, time) =
+    let num1D = List<int>()
+    let num2D = List<int>()
+
     member this.ImageX = imageX
     member this.ImageY = imageY
+
+    member this.Num1D = num1D
+    member this.Num2D = num2D
 
     interface ICameraSample with
         member this.ImageX = imageX
@@ -22,6 +29,14 @@ type Sample(imageX, imageY, lensU, lensV, time) =
         member this.LensU = lensU
         member this.LensV = lensV
         member this.Time = time
+
+    member this.Add1D(num) =
+        num1D.Add(num)
+        num1D.Count - 1
+
+    member this.Add2D(num) =
+        num2D.Add(num)
+        num2D.Count - 1
 
 
 [<AbstractClass>]

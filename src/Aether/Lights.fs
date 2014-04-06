@@ -29,10 +29,21 @@ type VisibilityTester(ray : RaySegment) =
         not(scene.Intersects ray)
 
 
+type LightSampleOffsets(count, sample) =
+    
+
+
+type LightSample(uPos0, uPos1, uComponent) =
+
+    new(sample, offsets, num) = LightSample()
+    new(rng : System.Random) = LightSample(rng.NextSingle(), rng.NextSingle(), rng.NextSingle())
+    
+
+
 [<AbstractClass>]
 type Light(lightToWorld : Transform) =
     /// Calculates the radiance arriving at the specified world-space point due to this light. 
-    abstract Evaluate : Point -> single -> single -> (Spectrum * Vector * VisibilityTester)
+    abstract SampleL : Point -> single -> LightSample -> single -> (Spectrum * Vector * single * VisibilityTester)
 
 //    abstract Power : IIntersectable -> ColorF
 
